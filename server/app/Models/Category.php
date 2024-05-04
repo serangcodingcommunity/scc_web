@@ -14,6 +14,8 @@ class Category extends Model
         'id'
     ];
 
+    public $timestamps = false;
+
     public function posts()
     {
         return $this->hasMany(Post::class);

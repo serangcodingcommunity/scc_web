@@ -8,7 +8,7 @@ use App\Http\Controllers\CategoryController;
 /* Auth */
 
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 // Route::get('/logout', [AuthController::class, 'logout']);
 
@@ -17,9 +17,11 @@ Route::get('/redirect', [AuthController::class, 'refresh']);
 Route::get('/google/callback', [AuthController::class, 'callback']);
 
 /* Category */
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::post('/categories', [CategoryController::class, 'store']);
-Route::put('/categories/{id}', [CategoryController::class, 'update']);
+Route::get('/categories', [CategoryController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/categories', [CategoryController::class, 'store'])->middleware('auth:sanctum');
+Route::get('/categories/{id}', [CategoryController::class, 'show'])->middleware('auth:sanctum');
+Route::put('/categories/{id}', [CategoryController::class, 'update'])->middleware('auth:sanctum');
+Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
