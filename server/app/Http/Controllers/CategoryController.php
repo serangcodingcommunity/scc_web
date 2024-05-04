@@ -28,16 +28,20 @@ class CategoryController extends Controller
         $validatedData = Validator::make($request->all(), [
             "title" => ['required', 'unique:categories,title'],
         ]);
-
+    
         if ($validatedData->fails()) {
             return response()->json([
                 "message" => "Validation error",
                 "errors" => $validatedData->errors()
             ], 422);
         }
-
-        $category = Category::create($validatedData->validated());
-
+    
+        $slug = slugify($request->input('title'));
+        $category = Category::create([
+            'title' => $request->input('title'),
+            'slug' => $slug,
+        ]);
+    
         return response()->json([
             "message" => "Category created successfully",
             "data" => $category
