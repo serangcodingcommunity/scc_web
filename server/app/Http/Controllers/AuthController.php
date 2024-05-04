@@ -99,6 +99,7 @@ class AuthController extends Controller
             ], [
                 'name' => $socialUser->name,
                 'email' => $socialUser->email,
+                'password' => bcrypt('KucingMerah2024')
             ]);
 
             Auth::login($user);
