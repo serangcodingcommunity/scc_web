@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -19,10 +20,29 @@ class AuthController extends Controller
             'password_confirmation' => ['required', 'same:password']
         ]);
 
-        if ($validatedData->fails()) {
+        // if ($validatedData->fails()) {
+        //     return response()->json([
+        //         'message' => 'Invalid data',
+        //         'errors' => $validatedData->errors()
+        //     ], 422);
+        // }
+
+        $userExists = User::where('email', $request->input('email'))->exists();
+        if ($userExists) {
             return response()->json([
-                'message' => 'Invalid data',
-                'errors' => $validatedData->errors()
+                'error' => 'Email sudah terdaftar'
+            ], 409);
+        }
+
+        if (strlen($request->input('password')) < 8) {
+            return response()->json([
+                'error' => 'Kata sandi minimal harus 8 karakter'
+            ], 422);
+        }
+
+        if ($request->input('password') !== $request->input('password_confirmation')) {
+            return response()->json([
+                'error' => 'Kata sandi tidak sesuai'
             ], 422);
         }
 
@@ -37,7 +57,10 @@ class AuthController extends Controller
 
         return response()->json([
             "message" => "User created successfully",
-            "data" => $success
+            "data" => [
+                "name" => $user->name,
+                "email" => $user->email
+            ]
         ], 201);
     }
 
@@ -63,23 +86,89 @@ class AuthController extends Controller
 
             return response()->json([
                 "msg" => "User logged in successfully",
-                "data" => $success
+                "data" => ["token" => $success['token']]
             ]);
         } else {
-            return response()->json([
-                "message" => "Wrong Email or Password"
-            ], 401);
+            if (!User::where('email', $request->email)->exists()) {
+                return response()->json([
+                    "error" => "Email belum terdaftar"
+                ], 401);
+            } else {
+                return response()->json([
+                    "error" => "Email atau password salah"
+                ], 401);
+            }
         }
     }
-
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            "message" => "User logged out successfully"
+        // return response()->json([
+        //     "message" => "User logged out successfully"
+        // ]);
+
+        if ($request->user()) {
+            return response()->json([
+                "data" => "ok"
+            ], 200);
+        } else {
+            return response()->json([
+                "error" => "Unauthorized"
+            ], 401);
+        }
+
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validatedData = Validator::make($request->all(), [
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+            'password_confirmation' => ['required', 'same:password']
         ]);
+    
+        // if ($validatedData->fails()) {
+        //     return response()->json([
+        //         'error' => 'Data tidak valid',
+        //         'errors' => $validatedData->errors()
+        //     ], 422);
+        // }
+
+        if ($request->input('password') !== $request->input('password_confirmation')) {
+            return response()->json([
+                'error' => 'Kata sandi tidak sesuai'
+            ], 422);
+        }
+    
+        $user = User::where('email', $request->input('email'))->first();
+        if (!$user) {
+            return response()->json([
+                'error' => 'Email belum terdaftar'
+            ], 404);
+        }
+    
+        if (Hash::check($request->input('password'), $user->password)) {
+            return response()->json([
+                'error' => 'Password tidak boleh sama dengan yang lama'
+            ], 422);
+        }
+    
+        if (strlen($request->input('password')) < 8) {
+            return response()->json([
+                'error' => 'Password minimal 8 digit'
+            ], 422);
+        }
+    
+        $user->password = bcrypt($request->input('password'));
+        $user->save();
+    
+        return response()->json([
+            'data' => [
+                'name' => $user->name
+            ]
+        ], 200);
     }
 
     public function refresh()

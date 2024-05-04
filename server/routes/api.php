@@ -21,6 +21,9 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::post('/categories', [CategoryController::class, 'store']);
 Route::put('/categories/{id}', [CategoryController::class, 'update']);
 
+/* Reset Password */
+Route::get('/reset-password', [AuthController::class, 'resetPassword']);
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
