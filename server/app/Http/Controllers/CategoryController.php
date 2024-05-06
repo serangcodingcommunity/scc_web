@@ -58,7 +58,7 @@ class CategoryController extends Controller
         if (!$category) {
             return response()->json([
                 "error" => "Category not found"
-            ], 422);
+            ], 404);
         }
 
         return response()->json([
@@ -79,7 +79,7 @@ class CategoryController extends Controller
         if (!$category) {
             return response()->json([
                 "error" => "Category not found"
-            ], 422);
+            ], 404);
         }
 
         if ($validatedData->fails()) {
@@ -114,10 +114,17 @@ class CategoryController extends Controller
         if (!$category) {
             return response()->json([
                 "error" => "Category not found"
+            ], 404);
+        }
+
+        $relatedEventsCount = $category->posts()->count();
+        if ($relatedEventsCount > 0) {
+            return response()->json([
+                "error" => "Category still related to posts"
             ], 422);
         }
 
-        Category::where('id', $request->id)->delete();
+        $category->delete();
 
         return response()->json([
             "data" => "ok"

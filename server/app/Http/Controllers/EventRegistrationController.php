@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use App\Models\RegistrasiEvent;
@@ -14,6 +15,8 @@ class EventRegistrationController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+
     public function index()
     {
         $registrasiEvent = RegistrasiEvent::with([
@@ -46,8 +49,30 @@ class EventRegistrationController extends Controller
      */
     public function store(Request $request)
     {
+        $eventExists = Event::where('id', $request->event_id)->exists();
+
+        if (!$eventExists) {
+            return response()->json([
+                "error" => "Event not found"
+            ], 404);
+        }
+
         $validatedData = Validator::make($request->all(), [
-            "event_id" => ['required', 'unique:registrasi_events,event_id'],
+            "event_id" => ['required'],
+            "bukti_pemb" => ['required', function ($attribute, $value, $fail) use ($request) {
+                if (!$request->has('event_id')) {
+                    return;
+                }
+
+                $existingRegistration = DB::table('registrasi_events')
+                    ->where('user_id', auth()->id())
+                    ->where('event_id', $request->event_id)
+                    ->exists();
+
+                if ($existingRegistration) {
+                    $fail('You have already registered for this event.');
+                }
+            }],
         ]);
 
         if ($validatedData->fails()) {
@@ -57,20 +82,18 @@ class EventRegistrationController extends Controller
             ], 422);
         }
 
-        $user = Auth::user();
-
-        $registrasiEvent = new RegistrasiEvent([
-            'event_id' => $request->event_id,
-            'user_id' => $user->id
-        ]);
-
-        $pembayaran = new Pembayaran([
-            'bukti_pemb' => $request->bukti_pemb,
-            'status' => "Proses"
-        ]);
-
+        $registrasiEvent = new RegistrasiEvent();
+        $registrasiEvent->user_id = auth()->user()->id;
+        $registrasiEvent->event_id = $request->event_id;
         $registrasiEvent->save();
-        $pembayaran->id = $registrasiEvent->id;
+
+        $user = Auth::user();
+        $registrasiEventId = RegistrasiEvent::where('user_id', $user->id)->latest()->first();
+
+        $pembayaran = new Pembayaran();
+        $pembayaran->id = $registrasiEventId->id;
+        $pembayaran->bukti_pemb = $request->bukti_pemb;
+        $pembayaran->status = 'Proses';
         $pembayaran->save();
 
         return response()->json([
@@ -106,8 +129,18 @@ class EventRegistrationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(RegistrasiEvent $registrasiEvent)
+    public function destroy(Request $request, RegistrasiEvent $registrasiEvent)
     {
-        //
+        $registrasiEventExists = RegistrasiEvent::where('id', $request->id)->exists();
+
+        if (!$registrasiEventExists) {
+            return response()->json([
+                "error" => "Registration event not found"
+            ], 404);
+        }
+
+        return response()->json([
+            "error" => "Tidak dapat dibatalkan, sudah melakukan pembayaran"
+        ], 200);
     }
 }

@@ -97,7 +97,7 @@ class EventController extends Controller
         if (!$event) {
             return response()->json([
                 "error" => "Event not found"
-            ], 422);
+            ], 404);
         }
 
         $narasumber = Narasumber::find($event->narasumber_id);
@@ -129,13 +129,13 @@ class EventController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function patch(Request $request, Event $event)
+    public function publish(Request $request, Event $event)
     {
         $event = Event::find($request->id);
         if (!$event) {
             return response()->json([
                 "error" => "Event not found"
-            ], 422);
+            ], 404);
         }
 
         Event::where('id', $request->id)->update([
@@ -177,7 +177,7 @@ class EventController extends Controller
         if (!$event) {
             return response()->json([
                 "error" => "Event not found"
-            ], 422);
+            ], 404);
         }
 
         if ($validatedData->fails()) {
@@ -223,7 +223,7 @@ class EventController extends Controller
         if (!$event) {
             return response()->json([
                 "error" => "Event not found"
-            ], 422);
+            ], 404);
         }
 
         Event::where('id', $request->id)->delete();

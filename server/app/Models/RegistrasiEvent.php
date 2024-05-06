@@ -21,6 +21,11 @@ class RegistrasiEvent extends Model
 
     public function pembayaran()
     {
-        return $this->hasOne(Pembayaran::class);
+        return $this->hasOne(Pembayaran::class, 'id');
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
     }
 }
