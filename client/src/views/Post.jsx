@@ -1,14 +1,14 @@
 import React from 'react'
 import PageComponent from '../components/PageComponent'
 
-const Dashboard = () => {
+const Post = () => {
     return (
         <>
-            <PageComponent title="Dashboard">
-                Children
+            <PageComponent title="Posts">
+                Posts Content
             </PageComponent>
         </>
     )
 }
 
-export default Dashboard
+export default Post
