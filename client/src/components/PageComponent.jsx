@@ -1,6 +1,6 @@
 import React from 'react'
 
-const PageComponent = ({ title, buttons = '', children }) => {
+const PageComponent = ({ title, buttons = " ", children }) => {
     return (
 <>
             <header className="bg-white shadow">

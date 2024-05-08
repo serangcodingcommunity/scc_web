@@ -3,11 +3,13 @@ import { Fragment } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { NavLink, Navigate, Outlet } from "react-router-dom";
-import { userStateContext } from '../contexts/ContextProvider.jsx';
+import { useStateContext } from '../contexts/ContextProvider.jsx';
+import axiosClient from '../axios.js';
 
 const navigation = [
-    { name: 'Dashboard', to: '/admin'},
-    { name: 'Posts', to: '/admin/posts' }
+    { name: 'Dashboard', to: '/'},
+    { name: 'Posts', to: '/posts' },
+    { name: 'Categories', to: '/categories' }
 ]
 // const userNavigation = [
 //     { name: 'Your Profile', href: '#' },
@@ -20,17 +22,19 @@ function classNames(...classes) {
 }
 
 export default function DefaultLayout() {
-    const { currentUser, userToken } = userStateContext();
+    const { currentUser, userToken, setUserToken, setCurrentUser } = useStateContext();
 
-    // if (!userToken) {
-    //     return (
-    //         <Navigate to="/login" />
-    //     )
-    // }
+    if (!userToken) { 
+        return <Navigate to="login" />  
+    }
 
     const logout = (ev) => {
         ev.preventDefault();
-        console.log("Logout");
+        axiosClient.post('/logout')
+            .then(res => {
+                setCurrentUser({});
+                setUserToken(null);
+            })
     }
 
     return (
@@ -49,7 +53,6 @@ export default function DefaultLayout() {
                                         />
                                     </div>
                                     <div className="hidden md:block">
-                                    {userToken}
                                         <div className="ml-10 flex items-baseline space-x-4">
                                             {navigation.map((item) => (
                                                 <NavLink
@@ -141,10 +144,8 @@ export default function DefaultLayout() {
                                         <UserIcon className='w-8 h-8 bg-black/25 p-2 rounded-full text-white' />
                                     </div>
                                     <div className="ml-3">
-                                    <div className="text-base font-medium leading-none text-white">{currentUser && currentUser.name}</div>
-
-                                    <div className="text-base font-medium leading-none text-white">{currentUser && currentUser.email}</div>
-
+                                        <div className="text-base font-medium leading-none text-white">{currentUser.name}</div>
+                                        <div className="text-base font-medium leading-none text-white">{currentUser.email}</div>
                                     </div>
                                 </div>
                                 <div className="mt-3 space-y-1 px-2">

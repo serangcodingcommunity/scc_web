@@ -6,24 +6,29 @@ import Register from './views/Register.jsx';
 import GuestLayout from './components/GuestLayout.jsx';
 import DefaultLayout from './components/DefaultLayout.jsx';
 import Post from './views/Post.jsx';
+import Category from './views/Category.jsx';
 
 
 const router = createBrowserRouter([
     {
-        path: "/admin",
+        path: "/",
         element: <DefaultLayout />,
         children: [
             {
-                path: "admin/dashboard",
+                path: "/dashboard",
                 element: <Navigate to="/" />,
             },
             {
-                path: "/admin",
+                path: "/",
                 element: <Dashboard />,
             },
             {
-                path: "/admin/posts",
+                path: "/posts",
                 element: <Post />,
+            },
+            {
+                path: "/categories",
+                element: <Category />,
             },
         ]
     },

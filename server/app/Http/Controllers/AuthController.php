@@ -14,8 +14,8 @@ class AuthController extends Controller
     {
         $validatedData = Validator::make($request->all(), [
             'name' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+            'email' => ['required', 'email','unique:users'],
+            'password' => ['required', 'min:8'],
             'password_confirmation' => ['required', 'same:password']
         ]);
 
@@ -28,12 +28,14 @@ class AuthController extends Controller
 
         $data = $request->all();
         $data['password'] = bcrypt($data['password']);
-        // $data['access_token'] = bin2hex(random_bytes(32));
 
         $user = User::create($data);
 
         $success['token'] = $user->createToken('auth_token')->plainTextToken;
-        $success['name'] = $user->name;
+        $success['user'] = [
+            'name' => $user->name,
+            'email' => $user->email
+        ];
 
         return response()->json([
             "message" => "User created successfully",
@@ -46,23 +48,14 @@ class AuthController extends Controller
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             /** @var \App\Models\User $user */
             $user = Auth::user();
-
-            // $user->access_token = bin2hex(random_bytes(32));
-            // $user->save();
-
-            // $success['token'] = $user->access_token;
-            // $success['name'] = $user->name;
-
             $success['token'] = $user->createToken('auth_token')->plainTextToken;
-            $success['name'] = $user->name;
-
-            // return response()->json([
-            //     "message" => "User logged in successfully",
-            //     "data" => $success
-            // ])->header('Authorization', 'Bearer ' . $user->access_token); // Menambahkan header Authorization
+            $success['user'] = [
+                'name' => $user->name,
+                'email' => $user->email
+            ];
 
             return response()->json([
-                "msg" => "User logged in successfully",
+                "message" => "User logged in successfully",
                 "data" => $success
             ]);
         } else {
@@ -76,7 +69,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
         return response()->json([
             "message" => "User logged out successfully"
         ]);
