@@ -22,7 +22,7 @@ class Like extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function posts()
+    public function post()
     {
         return $this->belongsTo(Post::class);
     }

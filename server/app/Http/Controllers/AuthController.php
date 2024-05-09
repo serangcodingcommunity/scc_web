@@ -20,35 +20,27 @@ class AuthController extends Controller
             'password_confirmation' => ['required', 'same:password']
         ]);
 
-        // if ($validatedData->fails()) {
-        //     return response()->json([
-        //         'message' => 'Invalid data',
-        //         'errors' => $validatedData->errors()
-        //     ], 422);
-        // }
-
         $userExists = User::where('email', $request->input('email'))->exists();
         if ($userExists) {
             return response()->json([
-                'error' => 'Email sudah terdaftar'
+                'message' => 'Email sudah terdaftar'
             ], 409);
         }
 
         if (strlen($request->input('password')) < 8) {
             return response()->json([
-                'error' => 'Kata sandi minimal harus 8 karakter'
+                'message' => 'Kata sandi minimal harus 8 karakter'
             ], 422);
         }
 
         if ($request->input('password') !== $request->input('password_confirmation')) {
             return response()->json([
-                'error' => 'Kata sandi tidak sesuai'
+                'message' => 'Kata sandi tidak sesuai'
             ], 422);
         }
 
         $data = $request->all();
         $data['password'] = bcrypt($data['password']);
-        // $data['access_token'] = bin2hex(random_bytes(32));
 
         $user = User::create($data);
 
@@ -56,7 +48,7 @@ class AuthController extends Controller
         $success['name'] = $user->name;
 
         return response()->json([
-            "message" => "User created successfully",
+            "message" => "Pengguna berhasil dibuat",
             "data" => [
                 "name" => $user->name,
                 "email" => $user->email
@@ -70,32 +62,21 @@ class AuthController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
-            // $user->access_token = bin2hex(random_bytes(32));
-            // $user->save();
-
-            // $success['token'] = $user->access_token;
-            // $success['name'] = $user->name;
-
             $success['token'] = $user->createToken('auth_token')->plainTextToken;
             $success['name'] = $user->name;
 
-            // return response()->json([
-            //     "message" => "User logged in successfully",
-            //     "data" => $success
-            // ])->header('Authorization', 'Bearer ' . $user->access_token); // Menambahkan header Authorization
-
             return response()->json([
-                "msg" => "User logged in successfully",
+                "message" => "Berhasil login",
                 "data" => ["token" => $success['token']]
             ]);
         } else {
             if (!User::where('email', $request->email)->exists()) {
                 return response()->json([
-                    "error" => "Email belum terdaftar"
+                    "message" => "Email belum terdaftar"
                 ], 401);
             } else {
                 return response()->json([
-                    "error" => "Email atau password salah"
+                    "message" => "Email atau kata sandi salah"
                 ], 401);
             }
         }
@@ -105,9 +86,9 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        // return response()->json([
-        //     "message" => "User logged out successfully"
-        // ]);
+        return response()->json([
+            "message" => "Pengguna berhasil logout"
+        ]);
 
         if ($request->user()) {
             return response()->json([
@@ -115,7 +96,7 @@ class AuthController extends Controller
             ], 200);
         } else {
             return response()->json([
-                "error" => "Unauthorized"
+                "message" => "Unauthorized"
             ], 401);
         }
 
@@ -128,36 +109,29 @@ class AuthController extends Controller
             'password' => ['required'],
             'password_confirmation' => ['required', 'same:password']
         ]);
-    
-        // if ($validatedData->fails()) {
-        //     return response()->json([
-        //         'error' => 'Data tidak valid',
-        //         'errors' => $validatedData->errors()
-        //     ], 422);
-        // }
 
         if ($request->input('password') !== $request->input('password_confirmation')) {
             return response()->json([
-                'error' => 'Kata sandi tidak sesuai'
+                'message' => 'Kata sandi tidak sesuai'
             ], 422);
         }
     
         $user = User::where('email', $request->input('email'))->first();
         if (!$user) {
             return response()->json([
-                'error' => 'Email belum terdaftar'
+                'message' => 'Email belum terdaftar'
             ], 404);
         }
     
         if (Hash::check($request->input('password'), $user->password)) {
             return response()->json([
-                'error' => 'Password tidak boleh sama dengan yang lama'
+                'message' => 'Kata sandi tidak boleh sama dengan yang lama'
             ], 422);
         }
     
         if (strlen($request->input('password')) < 8) {
             return response()->json([
-                'error' => 'Password minimal 8 digit'
+                'message' => 'Kata sandi minimal 8 karakter'
             ], 422);
         }
     
@@ -194,15 +168,14 @@ class AuthController extends Controller
             Auth::login($user);
 
             return response()->json([
-                "message" => "User created successfully",
+                "message" => "Pengguna berhasil dibuat",
                 "data" => $socialUser->id
             ], 201);
 
-            // return redirect('/dashboard');
         }
 
         return response()->json([
-            "message" => "User logged in successfully",
+            "message" => "Pengguna berhasil login",
         ]);
     }
 }

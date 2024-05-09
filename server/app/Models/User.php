@@ -113,8 +113,8 @@ class User extends Authenticatable
         return $this->hasMany(Feedback::class);
     }
 
-    public function member()
+    public function members()
     {
-        return $this->hasOne(Member::class);
+        return $this->hasOne(Member::class, 'id');
     }
 }
