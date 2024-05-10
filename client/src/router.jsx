@@ -1,12 +1,16 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom';
-import App from './App.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import Login from './views/Login.jsx';
 import Register from './views/Register.jsx';
 import GuestLayout from './components/GuestLayout.jsx';
+import AuthLayout from './components/AuthLayout.jsx';
 import DefaultLayout from './components/DefaultLayout.jsx';
 import Post from './views/Post.jsx';
 import Category from './views/Category.jsx';
+import Home from './views/Home.jsx';
+import About from './views/About.jsx';
+import Event from './views/Event.jsx';
+import Member from './views/Member.jsx';
 
 
 const router = createBrowserRouter([
@@ -15,37 +19,67 @@ const router = createBrowserRouter([
         element: <DefaultLayout />,
         children: [
             {
-                path: "/dashboard",
+                path: "/",
                 element: <Navigate to="/" />,
             },
             {
+                path: "/home",
+                element: <Home />,
+            },
+            {
+                path: "/about",
+                element: <About />,
+            },
+            {
+                path: "/events",
+                element: <Event />,
+            },
+            {
+                path: "/members",
+                element: <Member />,
+            },
+            {
                 path: "/",
-                element: <Dashboard />,
-            },
-            {
-                path: "/posts",
-                element: <Post />,
-            },
-            {
-                path: "/categories",
-                element: <Category />,
+                element: <GuestLayout />,
+                children: [
+                    {
+                        path: "/",
+                        element: <Home />,
+                    },
+                    {
+                        path: "/login",
+                        element: <Login />,
+                    },
+                    {
+                        path: "/register",
+                        element: <Register />,
+                    }
+                ]
             },
         ]
     },
     {
-        path: "/",
-        element: <GuestLayout />,
+        path: "/dashboard",
+        element: <AuthLayout />,
         children: [
             {
-                path: "/Login",
-                element: <Login />,
+                path: "/dashboard",
+                element: <Navigate to="/dashboard" />,
             },
             {
-                path: "/Register",
-                element: <Register />,
+                path: "/dashboard",
+                element: <Dashboard />,
+            },
+            {
+                path: "/dashboard/posts",
+                element: <Post />,
+            },
+            {
+                path: "/dashboard/categories",
+                element: <Category />,
             },
         ]
-    }
+    },
 ]);
 
 export default router

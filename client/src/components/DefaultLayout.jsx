@@ -1,169 +1,102 @@
-import React from 'react';
-import { Fragment } from 'react';
-import { Disclosure, Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, BellIcon, UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { NavLink, Navigate, Outlet } from "react-router-dom";
-import { useStateContext } from '../contexts/ContextProvider.jsx';
-import axiosClient from '../axios.js';
+import React, { useState } from "react";
+import { Navigate, Outlet, NavLink, useLocation } from "react-router-dom";
+import { useStateContext } from "../contexts/ContextProvider";
+import logo from "../assets/logo.png";
+import logoDark from "../assets/logoDark.png";
+import { IoSunny, IoMoon } from "react-icons/io5";
 
 const navigation = [
-    { name: 'Dashboard', to: '/'},
-    { name: 'Posts', to: '/posts' },
-    { name: 'Categories', to: '/categories' }
+    { name: 'About', to: '/about' },
+    { name: 'Events', to: '/events' },
+    { name: 'Members', to: '/members' },
+    { name: 'Login', to: '/login' },
+    { name: 'Register', to: '/register' },
 ]
-// const userNavigation = [
-//     { name: 'Your Profile', href: '#' },
-//     { name: 'Settings', href: '#' },
-//     { name: 'Sign out', href: '#' },
-// ]
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
 export default function DefaultLayout() {
-    const { currentUser, userToken, setUserToken, setCurrentUser } = useStateContext();
+    const { currentUser, userToken } = useStateContext();
+    const [darkMode, setDarkMode] = useState(false);
+    const location = useLocation();
 
-    if (!userToken) { 
-        return <Navigate to="login" />  
-    }
+    const toggleDarkMode = () => {
+        setDarkMode(!darkMode);
+        if (darkMode) {
+            document.documentElement.classList.remove('dark');
+        } else {
+            document.documentElement.classList.add('dark');
+        }
+    };
 
-    const logout = (ev) => {
-        ev.preventDefault();
-        axiosClient.post('/logout')
-            .then(res => {
-                setCurrentUser({});
-                setUserToken(null);
-            })
-    }
+    const filteredNavigation = navigation.filter(item => {
+        if (item.name === 'Login' && userToken) {
+            return false;
+        }
+        if (item.name === 'Register' && userToken) {
+            return false;
+        }
+        if (item.name === 'Register' && location.pathname !== '/register') {
+            return false;
+        }
+        if (item.name === 'Login' && location.pathname === '/register') {
+            return false;
+        }
+        return true;
+    });
 
     return (
-        <div className="min-h-full" >
-            <Disclosure as="nav" className="bg-gray-800">
-                {({ open }) => (
-                    <>
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="flex h-16 items-center justify-between">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0">
-                                        <img
-                                            className="h-8 w-8"
-                                            src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                                            alt="Your Company"
-                                        />
-                                    </div>
-                                    <div className="hidden md:block">
-                                        <div className="ml-10 flex items-baseline space-x-4">
-                                            {navigation.map((item) => (
-                                                <NavLink
-                                                    key={item.name}
-                                                    to={item.to}
-                                                    className={({ isActive }) => classNames(
-                                                        isActive
-                                                            ? 'bg-gray-900 text-white'
-                                                            : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                                                        'rounded-md px-3 py-2 text-sm font-medium'
-                                                    )}
-                                                >
-                                                    {item.name}
-                                                </NavLink>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="hidden md:block">
-                                    <div className="ml-4 flex items-center md:ml-6">
+        <div className={`flex min-h-screen flex-1 flex-col px-6 lg:px-8 ${darkMode ? 'bg-[#142D55]' : 'bg-white'}`}>
+            <div className={`flex items-center justify-between p-2 px-3 mx-6 rounded-xl shadow-xl ${darkMode ? 'bg-[#142D55] text-white' : 'bg-white text-[#142D55]'}`}>
+                {/* Logo */}
+                <div className="flex items-center space-x-4">
+                    <img
+                        className={`h-8 w-8 rounded-md ${darkMode ? 'bg-white' : 'bg-[#142D55]'}`}
+                        src={`${darkMode ? logoDark : logo}`}
+                        alt="Serang Coding Community"
+                    />
+                    <NavLink
+                        to="/"
+                        className="font-semibold"
+                    >
+                        Serang Coding Community
+                    </NavLink>
+                    <button onClick={toggleDarkMode} className={`rounded-xl text-xl font-semibold ${darkMode ? 'text-white' : 'text-[#142D55]'} hover:scale-110`}>
+                        {darkMode ? <IoMoon /> : <IoSunny />}
+                    </button>
+                </div>
 
-                                        {/* Profile dropdown */}
-                                        <Menu as="div" className="relative ml-3">
-                                            <div>
-                                                <Menu.Button className="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-                                                    <span className="absolute -inset-1.5" />
-                                                    <span className="sr-only">Open user menu</span>
-                                                    <UserIcon className='w-8 h-8 bg-black/25 p-2 rounded-full text-white' />
-                                                </Menu.Button>
-                                            </div>
-                                            <Transition
-                                                as={Fragment}
-                                                enter="transition ease-out duration-100"
-                                                enterFrom="transform opacity-0 scale-95"
-                                                enterTo="transform opacity-100 scale-100"
-                                                leave="transition ease-in duration-75"
-                                                leaveFrom="transform opacity-100 scale-100"
-                                                leaveTo="transform opacity-0 scale-95"
-                                            >
-                                                <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                                    <Menu.Item>
-                                                        <a
-                                                            href="#"
-                                                            onClick={(ev) => logout(ev)}
-                                                            className={'block px-4 py-2 text-sm text-gray-700' }
-                                                            >
-                                                            Logout
-                                                        </a>
-                                                    </Menu.Item>
-                                                </Menu.Items>
-                                            </Transition>
-                                        </Menu>
-                                    </div>
-                                </div>
-                                <div className="-mr-2 flex md:hidden">
-                                    {/* Mobile menu button */}
-                                    <Disclosure.Button className="relative inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-                                        <span className="absolute -inset-0.5" />
-                                        <span className="sr-only">Open main menu</span>
-                                        {open ? (
-                                            <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
-                                        ) : (
-                                            <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-                                        )}
-                                    </Disclosure.Button>
-                                </div>
-                            </div>
-                        </div>
+                {/* Navigation */}
+                <div className="hidden md:flex items-center space-x-5">
+                    {filteredNavigation.map((item) => {
+                        if (item.name === 'Login' && userToken) {
+                            return null;
+                        }
+                        if (item.name === 'Register' && userToken) {
+                            return null;
+                        }
+                        return (
+                            <NavLink
+                                key={item.name}
+                                to={item.to}
+                                className={({ isActive }) => classNames(
+                                    'rounded-xl px-3 text-sm font-medium',
+                                    isActive
+                                        ? darkMode ? 'bg-white text-[#142D55]' : 'bg-[#142D55] text-white'
+                                        : darkMode ? 'bg-[#142D55] text-white hover:bg-white hover:text-[#142D55]' : 'bg-white text-[#142D55] hover:bg-[#142D55] hover:text-white',
+                                )}
+                            >
+                                {item.name}
+                            </NavLink>
+                        );
+                    })}
+                </div>
+            </div>
 
-                        <Disclosure.Panel className="md:hidden">
-                            <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-                                {navigation.map((item) => (
-                                    <NavLink
-                                        key={item.name}
-                                        to={item.to}
-                                        className={({ isActive }) => 
-                                        classNames(
-                                            isActive ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                                            'block rounded-md px-3 py-2 text-base font-medium'
-                                        )}
-                                    >
-                                        {item.name}
-                                    </NavLink>
-                                ))}
-                            </div>
-                            <div className="border-t border-gray-700 pb-3 pt-4">
-                                <div className="flex items-center px-5">
-                                    <div className="flex-shrink-0">
-                                        <UserIcon className='w-8 h-8 bg-black/25 p-2 rounded-full text-white' />
-                                    </div>
-                                    <div className="ml-3">
-                                        <div className="text-base font-medium leading-none text-white">{currentUser.name}</div>
-                                        <div className="text-base font-medium leading-none text-white">{currentUser.email}</div>
-                                    </div>
-                                </div>
-                                <div className="mt-3 space-y-1 px-2">
-                                    <Disclosure.Button
-                                        as="a"
-                                        href='#'
-                                        onClick={(ev) => logout(ev)}
-                                        className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-                                    >
-                                        Logout
-                                    </Disclosure.Button>
-                                </div>
-                            </div>
-                        </Disclosure.Panel>
-                    </>
-                )}
-            </Disclosure>
             <Outlet />
+
         </div>
     )
 }
