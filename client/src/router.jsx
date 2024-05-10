@@ -1,16 +1,17 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom';
-import Dashboard from './views/Dashboard.jsx';
-import Login from './views/Login.jsx';
-import Register from './views/Register.jsx';
-import GuestLayout from './components/GuestLayout.jsx';
-import AuthLayout from './components/AuthLayout.jsx';
-import DefaultLayout from './components/DefaultLayout.jsx';
-import Post from './views/Post.jsx';
-import Category from './views/Category.jsx';
-import Home from './views/Home.jsx';
-import About from './views/About.jsx';
-import Event from './views/Event.jsx';
-import Member from './views/Member.jsx';
+import Dashboard from './views/dashboard/Dashboard.jsx';
+import Login from './views/auth/Login.jsx';
+import Register from './views/auth/Register.jsx';
+import GuestLayout from './layouts/GuestLayout.jsx';
+import AuthLayout from './layouts/AuthLayout.jsx';
+import DefaultLayout from './layouts/DefaultLayout.jsx';
+import Post from './views/dashboard/Post.jsx';
+import Category from './views/dashboard/Category.jsx';
+import Home from './views/default/Home.jsx';
+import About from './views/default/About.jsx';
+import Event from './views/default/Event.jsx';
+import Member from './views/default/Member.jsx';
+import Profile from './views/default/Profile.jsx';
 
 
 const router = createBrowserRouter([
@@ -43,10 +44,6 @@ const router = createBrowserRouter([
                 element: <GuestLayout />,
                 children: [
                     {
-                        path: "/",
-                        element: <Home />,
-                    },
-                    {
                         path: "/login",
                         element: <Login />,
                     },
@@ -77,6 +74,10 @@ const router = createBrowserRouter([
             {
                 path: "/dashboard/categories",
                 element: <Category />,
+            },
+            {
+                path: "/dashboard/profile/:id",
+                element: <Profile />,
             },
         ]
     },

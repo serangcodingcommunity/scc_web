@@ -33,6 +33,7 @@ class AuthController extends Controller
 
         $success['token'] = $user->createToken('auth_token')->plainTextToken;
         $success['user'] = [
+            'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email
         ];
@@ -49,10 +50,6 @@ class AuthController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
             $success['token'] = $user->createToken('auth_token')->plainTextToken;
-            $success['user'] = [
-                'name' => $user->name,
-                'email' => $user->email
-            ];
 
             return response()->json([
                 "message" => "User logged in successfully",

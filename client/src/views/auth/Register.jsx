@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import axiosClient from "../axios";
+import axiosClient from "../../axios";
 import { useState } from "react";
-import { useStateContext } from "../contexts/ContextProvider";
+import { useStateContext } from "../../contexts/ContextProvider";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 
 const Register = () => {

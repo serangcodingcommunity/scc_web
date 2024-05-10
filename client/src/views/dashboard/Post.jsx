@@ -1,5 +1,5 @@
 import React from 'react'
-import PageComponent from '../components/PageComponent'
+import PageComponent from '../../components/PageComponent'
 
 const Post = () => {
     return (

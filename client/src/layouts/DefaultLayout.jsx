@@ -6,6 +6,7 @@ import logoDark from "../assets/logoDark.png";
 import { IoSunny, IoMoon } from "react-icons/io5";
 
 const navigation = [
+    { name: 'Dashboard', to: '/dashboard' },
     { name: 'About', to: '/about' },
     { name: 'Events', to: '/events' },
     { name: 'Members', to: '/members' },
@@ -18,7 +19,7 @@ function classNames(...classes) {
 }
 
 export default function DefaultLayout() {
-    const { currentUser, userToken } = useStateContext();
+    const { user, token } = useStateContext();
     const [darkMode, setDarkMode] = useState(false);
     const location = useLocation();
 
@@ -32,10 +33,10 @@ export default function DefaultLayout() {
     };
 
     const filteredNavigation = navigation.filter(item => {
-        if (item.name === 'Login' && userToken) {
+        if (item.name === 'Login' && token) {
             return false;
         }
-        if (item.name === 'Register' && userToken) {
+        if (item.name === 'Register' && token) {
             return false;
         }
         if (item.name === 'Register' && location.pathname !== '/register') {
@@ -71,10 +72,10 @@ export default function DefaultLayout() {
                 {/* Navigation */}
                 <div className="hidden md:flex items-center space-x-5">
                     {filteredNavigation.map((item) => {
-                        if (item.name === 'Login' && userToken) {
+                        if (item.name === 'Login' && token) {
                             return null;
                         }
-                        if (item.name === 'Register' && userToken) {
+                        if (item.name === 'Register' && token) {
                             return null;
                         }
                         return (
