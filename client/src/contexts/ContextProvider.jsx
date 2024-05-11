@@ -10,18 +10,7 @@ const StateContext = createContext({
 export const ContextProvider = ({ children }) => {
     const [user, setUser] = useState({});
     const [token, _setToken] = useState(localStorage.getItem('token') || '');
-
-    // useEffect(() => {
-    //     const storedUser = localStorage.getItem('currentUser');
-    //     if (storedUser) {
-    //         setCurrentUserState(JSON.parse(storedUser));
-    //     }
-    // }, []);
-
-    // const setCurrentUser = (user) => {
-    //     setCurrentUserState(user);
-    //     localStorage.setItem('currentUser', JSON.stringify(user));
-    // };
+    const [darkMode, setDarkMode] = useState(false);
 
     const setToken = (token) => {
         if(token) { 
@@ -31,6 +20,15 @@ export const ContextProvider = ({ children }) => {
         }
         _setToken(token);
     }
+
+    const toggleDarkMode = () => {
+        setDarkMode(!darkMode);
+        if (!darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    };
     
     return (
         <StateContext.Provider value={{
@@ -38,6 +36,8 @@ export const ContextProvider = ({ children }) => {
             setUser, 
             token, 
             setToken, 
+            darkMode,
+            toggleDarkMode 
         }}
     >
         {children}

@@ -7,7 +7,7 @@ import AuthLayout from './layouts/AuthLayout.jsx';
 import DefaultLayout from './layouts/DefaultLayout.jsx';
 import Post from './views/dashboard/Post.jsx';
 import Category from './views/dashboard/Category.jsx';
-import Home from './views/default/Home.jsx';
+import Home from './views/default/home/Home.jsx';
 import About from './views/default/About.jsx';
 import Event from './views/default/Event.jsx';
 import Member from './views/default/Member.jsx';
@@ -20,11 +20,11 @@ const router = createBrowserRouter([
         element: <DefaultLayout />,
         children: [
             {
-                path: "/",
-                element: <Navigate to="/" />,
+                path: "/home",
+                element: <Navigate  to="/" />,
             },
             {
-                path: "/home",
+                path: "/",
                 element: <Home />,
             },
             {
