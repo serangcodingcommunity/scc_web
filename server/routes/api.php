@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\EventRegistrationController;
 
 /* Auth */
 
@@ -44,7 +45,7 @@ Route::get('/events/{id}/feedbacks', [FeedbackController::class, 'index'])->midd
 
 /* Users */
 Route::get('/users', [UsersController::class, 'index'])->middleware('auth:sanctum');
-Route::put('/users/{id}', [UsersController::class, 'update'])->middleware('auth:sanctum');
+Route::post('/users/{id}', [UsersController::class, 'update'])->middleware('auth:sanctum');
 
 /* Members */
 Route::post('/members', [UsersController::class, 'storeMember'])->middleware('auth:sanctum');
@@ -69,6 +70,8 @@ Route::delete('/sosmed/{id}', [UsersController::class, 'destroySosmed'])->middle
 Route::post('/portofolio', [UsersController::class, 'storePortofolio'])->middleware('auth:sanctum');
 Route::put('/portofolio/{id}', [UsersController::class, 'updatePortofolio'])->middleware('auth:sanctum');
 Route::delete('/portofolio/{id}', [UsersController::class, 'destroyPortofolio'])->middleware('auth:sanctum');
+
+Route::get('/event/registrasi', [EventRegistrationController::class, 'index'])->middleware('auth:sanctum');
 
 Route::get('/user', function (Request $request) {
     return $request->user();

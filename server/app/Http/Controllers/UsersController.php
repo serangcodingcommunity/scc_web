@@ -11,7 +11,10 @@ use App\Models\Portofolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\Facades\Image;
 use Illuminate\Support\Str;
+
 
 class UsersController extends Controller
 {
@@ -83,9 +86,44 @@ class UsersController extends Controller
 
     public function update(Request $request, string $id)
     {
-        //
+        $user = auth()->user();
+
+        $request->validate([
+            'photo_profile_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if (!empty($user->profile_photo_path)) {
+            $fileToDelete = public_path('images/profile-photo/' . $user->profile_photo_path);
+            if (File::exists($fileToDelete))
+            {
+                File::delete($fileToDelete);
+            }
+        }
+
+        if ($request->file('photo_profile_path')) {
+            $image = $request->file('photo_profile_path');
+            $timestamp = now()->format('dmYHis');
+            $randomNumber = mt_rand(10000, 99999);
+            $imageName = $user->name . '-' . $timestamp . $randomNumber . '.' . 'webp';
+            $image->move(public_path('images/profile-photo'), $imageName);
+
+            // Save the new image name to the database
+            $user->profile_photo_path = $imageName;
+            $user->save();
+
+            return response()->json([
+                'data' => [
+                    'id'=> $user->id,
+                    'photo_profile_path' => $imageName
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'File tidak ditemukan'
+        ], 400);
     }
-    
+        
 // Member
     public function storeMember(Request $request)
     {
@@ -468,7 +506,7 @@ class UsersController extends Controller
         $portofolio = new Portofolio();
         $portofolio->user_id = $validatedData['user_id'];
         $portofolio->title = $validatedData['title'];
-        $portofolio->slug = Str::slug($validatedData['title']);
+        $portofolio->slug = slugify($validatedData['title']);
         $portofolio->keterangan = $validatedData['keterangan'];
         $portofolio->image = $validatedData['image'];
         $portofolio->project_date = $validatedData['project_date'];
@@ -507,7 +545,7 @@ class UsersController extends Controller
 
         $portofolio->update([
             'title' => $validatedData['title'],
-            'slug' => Str::slug($validatedData['title']),
+            'slug' => slugify($validatedData['title']),
             'keterangan' => $validatedData['keterangan'],
             'image' => $validatedData['image'],
             'project_date' => $validatedData['project_date']
