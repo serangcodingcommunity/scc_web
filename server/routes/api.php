@@ -41,8 +41,8 @@ Route::get('/events/{id}', [EventController::class, 'show'])->middleware('auth:s
 Route::put('/events/{id}', [EventController::class, 'update'])->middleware('auth:sanctum');
 Route::patch('/events/{id}', [EventController::class, 'publish'])->middleware('auth:sanctum');
 Route::delete('/events/{id}', [EventController::class, 'destroy'])->middleware('auth:sanctum');
-Route::post('/events/{id}/tersedia', [EventController::class, 'tersediaEvent'])->middleware('auth:sanctum');
-Route::post('/events/{id}/selesai', [EventController::class, 'selesaiEvent'])->middleware('auth:sanctum');
+Route::patch('/events/{id}/tersedia', [EventController::class, 'tersediaEvent'])->middleware('auth:sanctum');
+Route::patch('/events/{id}/selesai', [EventController::class, 'selesaiEvent'])->middleware('auth:sanctum');
 
 /* Event Registration */
 Route::get('/event/registration', [EventRegistrationController::class, 'index'])->middleware('auth:sanctum');
