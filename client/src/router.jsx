@@ -12,6 +12,8 @@ import About from './views/default/About.jsx';
 import Event from './views/default/Event.jsx';
 import Member from './views/default/Member.jsx';
 import Profile from './views/default/Profile.jsx';
+import GoogleCallback from './views/auth/GoogleCallback.jsx';
+import GithubCallback from './views/auth/GithubCallback.jsx';
 
 
 const router = createBrowserRouter([
@@ -50,6 +52,14 @@ const router = createBrowserRouter([
                     {
                         path: "/register",
                         element: <Register />,
+                    },
+                    {
+                        path: "/auth/google",
+                        element: <GoogleCallback />,
+                    },
+                    {
+                        path: "/auth/github",
+                        element: <GithubCallback />,
                     }
                 ]
             },

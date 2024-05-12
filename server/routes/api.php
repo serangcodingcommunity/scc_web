@@ -18,9 +18,13 @@ Route::get('/users/{id}', [UsersController::class, 'show'])->middleware('auth:sa
 Route::post('/users/upload', [UsersController::class, 'upload'])->middleware('auth:sanctum');
 // Route::put('/users/{id}/upload', [UsersController::class, 'upload'])->middleware('auth:sanctum');
 
-/* OAuth Google */
-Route::get('/redirect', [AuthController::class, 'refresh']);
-Route::get('/google/callback', [AuthController::class, 'callback']);
+/* GithubAuth */
+Route::get('/github/redirect', [AuthController::class, 'refreshGithub']);
+Route::get('/github/callback', [AuthController::class, 'callbackGithub']);
+
+/* GoogleAuth */
+Route::get('/google/redirect', [AuthController::class, 'refreshGoogle']);
+Route::get('/google/callback', [AuthController::class, 'callbackGoogle']);
 
 /* Category */
 Route::get('/categories', [CategoryController::class, 'index'])->middleware('auth:sanctum');
@@ -32,8 +36,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('apps')->group(function () {
-
-    //middleware "auth"
     Route::group(['middleware' => ['auth']], function () {
     });
 });

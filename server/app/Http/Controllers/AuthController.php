@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
@@ -71,38 +72,99 @@ class AuthController extends Controller
         ]);
     }
 
-    public function refresh()
+    public function refreshGithub(): JsonResponse
     {
-        return Socialite::driver('google')->redirect();
+        $url = Socialite::driver('github')->stateless()->redirect()->getTargetUrl();
+        
+        return response()->json([
+            'url' => $url,
+        ]);
     }
 
-    public function callback()
+    public function refreshGoogle(): JsonResponse
     {
-        $socialUser = Socialite::driver('google')->user();
+        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+        
+        return response()->json([
+            'url' => $url,
+        ]);
+    }
 
-        $registeredUser = User::where('google_id', $socialUser->id)->first();
-
+    public function callbackGoogle()
+    {
+        $socialUser = Socialite::driver('google')->stateless()->user();
+        $registeredUser = User::where('email', $socialUser->email)->first();
+        
         if (!$registeredUser) {
-            $user = User::updateOrCreate([
-                'google_id' => $socialUser->id,
-            ], [
+            $user = User::create([
                 'name' => $socialUser->name,
                 'email' => $socialUser->email,
-                'password' => bcrypt('KucingMerah2024')
+                'google_id' => $socialUser->id,
+                'password' => bcrypt('GlorySCC2024'),
             ]);
-
+    
+            $token = $user->createToken('auth_token')->plainTextToken;
             Auth::login($user);
-
+    
             return response()->json([
                 "message" => "User created successfully",
-                "data" => $socialUser->id
+                "data" => [
+                    "token" => $token
+                ]
             ], 201);
-
-            // return redirect('/dashboard');
+        } else {
+            if ($registeredUser->github_id) {
+                $registeredUser->update([
+                    'google_id' => $socialUser->id,
+                ]);
+            }
+    
+            $token = $registeredUser->createToken('auth_token')->plainTextToken;
+            return response()->json([
+                "message" => "User logged in successfully",
+                "data" => [
+                    "token" => $token
+                ]
+            ]);
         }
-
-        return response()->json([
-            "message" => "User logged in successfully",
-        ]);
+    }
+    
+    public function callbackGithub()
+    {
+        $socialUser = Socialite::driver('github')->stateless()->user();
+        $registeredUser = User::where('email', $socialUser->email)->first();
+        
+        if (!$registeredUser) {
+            $user = User::create([
+                'name' => $socialUser->name,
+                'email' => $socialUser->email,
+                'github_id' => $socialUser->id,
+                'password' => bcrypt('GlorySCC2024'),
+            ]);
+    
+            $token = $user->createToken('auth_token')->plainTextToken;
+            Auth::login($user);
+    
+            return response()->json([
+                "message" => "User created successfully",
+                "data" => [
+                    "token" => $token
+                ]
+            ], 201);
+        } else {
+            if ($registeredUser->google_id) {
+                $registeredUser->update([
+                    'github_id' => $socialUser->id,
+                ]);
+            }
+    
+            $token = $registeredUser->createToken('auth_token')->plainTextToken;
+            return response()->json([
+                "message" => "User logged in successfully",
+                "data" => [
+                    "token" => $token
+                ]
+            ]);
+        }
     }
 }

@@ -17,15 +17,29 @@ class UsersController extends Controller
 
     public function index(Request $request)
     {
-        $user = User::all();
+        $perPage = $request->input('per_page', 5);
+        $search = $request->input('search', '');
+        $order_by = $request->input('order_by', 'name');
+        $direction = $request->input('direction', 'asc');
+        $user = User::select('name', 'email', 'profile_photo_path')
+            ->where('name', 'like', '%' . $search . '%')
+            ->orderBy($order_by, $direction)
+            ->paginate($perPage);
         return response()->json([
-            "data" => $user
+            'data' => $user,
+            'meta' => [
+                'current_page' => $user->currentPage(),
+                'per_page' => $user->perPage(),
+                'total' => $user->total(),
+                'from' => $user->firstItem(),
+            ],
         ], 200);
     }
 
     public function show(string $id)
     {
-        $user = User::find($id);
+        $user = User::select('name', 'email', 'profile_photo_path')
+            ->where('id', $id)->first();
         return response()->json([
             "data" => $user
         ], 200);

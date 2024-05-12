@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate  } from "react-router-dom";
 import axiosClient from "../../axios";
 import { useStateContext } from "../../contexts/ContextProvider";
@@ -9,6 +9,8 @@ const Login = () => {
         email: '',
         password: ''
     });
+    const [loginGoogleUrl, setLoginGoogleUrl] = useState(null);
+    const [loginGithubUrl, setLoginGithubUrl] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const navigate = useNavigate();
@@ -35,6 +37,26 @@ const Login = () => {
                 }
             })
     }
+
+    useEffect(() => {
+        axiosClient.get('/google/redirect')
+            .then((res) => {
+                setLoginGoogleUrl(res.data.url)
+            })
+            .catch(error => {
+                console.error("Error fetching Google login URL:", error);
+            });
+    }, []);
+
+    useEffect(() => {
+        axiosClient.get('/github/redirect')
+            .then((res) => {
+                setLoginGithubUrl(res.data.url)
+            })
+            .catch(error => {
+                console.error("Error fetching Github login URL:", error);
+            });
+    }, []);
 
     return (
         <>
@@ -164,11 +186,11 @@ const Login = () => {
                 </p>
 
                 <div className="flex justify-center space-x-4 mt-2">
-                    <button className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
+                    <button onClick={() => window.location.href = loginGoogleUrl} className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
                         <FaGoogle className="h-3 w-3 mr-2" />
                         Google
                     </button>
-                    <button className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
+                    <button onClick={() => window.location.href = loginGithubUrl} className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
                         <FaGithub className="h-3 w-3 mr-2" />
                         GitHub
                     </button>
