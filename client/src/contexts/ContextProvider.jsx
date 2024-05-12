@@ -13,7 +13,7 @@ export const ContextProvider = ({ children }) => {
     const [darkMode, setDarkMode] = useState(false);
 
     const setToken = (token) => {
-        if(token) { 
+        if (token) {
             localStorage.setItem('token', token);
         } else {
             localStorage.removeItem('token');
@@ -29,19 +29,19 @@ export const ContextProvider = ({ children }) => {
             document.documentElement.classList.remove('dark');
         }
     };
-    
+
     return (
         <StateContext.Provider value={{
-            user, 
-            setUser, 
-            token, 
-            setToken, 
+            user,
+            setUser,
+            token,
+            setToken,
             darkMode,
-            toggleDarkMode 
+            toggleDarkMode
         }}
-    >
-        {children}
-    </StateContext.Provider>
+        >
+            {children}
+        </StateContext.Provider>
     )
 }
 

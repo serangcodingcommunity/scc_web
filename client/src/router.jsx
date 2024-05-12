@@ -10,6 +10,7 @@ import Category from './views/dashboard/Category.jsx';
 import Home from './views/default/home/Home.jsx';
 import About from './views/default/About.jsx';
 import Event from './views/default/Event.jsx';
+import DetailEvent from './views/default/DetailEvent.jsx';
 import Member from './views/default/Member.jsx';
 import Profile from './views/default/Profile.jsx';
 import GoogleCallback from './views/auth/GoogleCallback.jsx';
@@ -23,7 +24,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "/home",
-                element: <Navigate  to="/" />,
+                element: <Navigate to="/" />,
             },
             {
                 path: "/",
@@ -35,7 +36,18 @@ const router = createBrowserRouter([
             },
             {
                 path: "/events",
-                element: <Event />,
+                element: <Event title="Upcoming Events" />,
+            },
+            // add route for past events
+            {
+                path: "/pastevents",
+                element: <Event title="Past Events" />,
+            },
+            // temporary route for testing
+            // should /{id}/event
+            {
+                path: "/selectedevent",
+                element: <DetailEvent />,
             },
             {
                 path: "/members",
