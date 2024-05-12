@@ -8,6 +8,8 @@ use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use App\Models\RegistrasiEvent;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class EventRegistrationController extends Controller
 {
@@ -36,6 +38,18 @@ class EventRegistrationController extends Controller
 
     public function store(Request $request)
     {
+        $validatedData = Validator::make($request->all(), [
+            "event_id" => ['required'],
+            "user_id" => ['required'],
+        ]);
+
+        if ($validatedData->fails()) {
+            return response()->json([
+                "message" => "Validation error",
+                "errors" => $validatedData->errors()
+            ], 422);
+        }
+
         $user = Auth::user();
         $event = Event::find($request->event_id);
         $registrasiEventExist = RegistrasiEvent::where('event_id', $event->id)->where('user_id', $user->id)->first();
@@ -85,13 +99,26 @@ class EventRegistrationController extends Controller
 
     public function bayar(Request $request, string $id)
     {
+        $user = Auth::user();
+        $userName = $user->name;
+        $timestamp = now()->timestamp;
+        $rules = ['bukti_pemb' => 'required|file|max:512'];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json([
+                "message" => "Please fill in the form correctly",
+                "data" => $validator->errors()
+            ], 422);
+        }
+
         $pembayaran = RegistrasiEvent::find($id);
         $pembayaranExist = Pembayaran::find($id);
         $registrasiEvent = Event::where('id', $pembayaran->event_id)->first();
 
         $cekPembCount = RegistrasiEvent::where('event_id', $registrasiEvent->id)
             ->whereHas('pembayaran', function ($query) {
-                $query->where('status', ['selesai', 'proses']);
+                $query->where('status', ['success', 'process']);
             })
             ->count();
 
@@ -103,7 +130,7 @@ class EventRegistrationController extends Controller
 
         if (!$pembayaran) {
             return response()->json([
-                "error" => "Tidak ada tagihan pembayaran",
+                "error" => "Tidak ada tagihan pembayaran untuk registrasi event ini",
             ], 404);
         }
 
@@ -113,29 +140,38 @@ class EventRegistrationController extends Controller
             ], 422);
         }
 
-        $bukti_pemb = base64_encode($request->bukti_pemb);
+        if ($request->hasFile('bukti_pemb')) {
+            if ($pembayaran->bukti_pemb) {
+                $profilePhotoPath = 'pembayaran/' . $pembayaran->bukti_pemb;
+                Storage::disk('public')->delete($profilePhotoPath);
+            }
 
-        $pembayaran = new Pembayaran();
-        $pembayaran->id = $id;
-        $pembayaran->bukti_pemb = $bukti_pemb;
-        $pembayaran->status = 'proses';
-        $pembayaran->save();
+            $image = $userName . $timestamp . '.' . $request->file('bukti_pemb')->getClientOriginalExtension();
+            $filePath = 'pembayaran/' . $image;
+            Storage::disk('public')->put($filePath, file_get_contents($request->file('bukti_pemb')));
 
-        $eventRegistrationCount = RegistrasiEvent::where('event_id', $registrasiEvent->id)
-            ->whereHas('pembayaran', function ($query) {
-                $query->where('status', 'selesai');
-            })
-            ->count();
-        $quotaNow = $registrasiEvent->quota - $eventRegistrationCount;
-        if ($quotaNow <= 0) {
-            Event::where('id', $registrasiEvent->id)->update([
-                'status' => 'soldout',
-            ]);
+            $pembayaran = new Pembayaran();
+            $pembayaran->id = $id;
+            $pembayaran->bukti_pemb = $image;
+            $pembayaran->status = 'process';
+            $pembayaran->save();
+
+            $eventRegistrationCount = RegistrasiEvent::where('event_id', $registrasiEvent->id)
+                ->whereHas('pembayaran', function ($query) {
+                    $query->where('status', 'success');
+                })
+                ->count();
+            $quotaNow = $registrasiEvent->quota - $eventRegistrationCount;
+            if ($quotaNow <= 0) {
+                Event::where('id', $registrasiEvent->id)->update([
+                    'status' => 'soldout',
+                ]);
+            }
+
+            return response()->json([
+                "message" => "Pembayaran akan diverifikasi",
+            ], 200);
         }
-
-        return response()->json([
-            "message" => "Pembayaran akan diverifikasi",
-        ], 200);
     }
 
     public function show(Request $request)
@@ -187,7 +223,7 @@ class EventRegistrationController extends Controller
             ], 404);
         }
 
-        $verifikasiPembayaran = Pembayaran::where('id', $eventRegistration->id)->where('status', 'selesai')->first();
+        $verifikasiPembayaran = Pembayaran::where('id', $eventRegistration->id)->where('status', 'success')->first();
 
         if ($verifikasiPembayaran) {
             return response()->json([
@@ -203,7 +239,7 @@ class EventRegistrationController extends Controller
             ], 404);
         } else {
             Pembayaran::where('id', $pembayaran->id)->update([
-                'status' => 'selesai'
+                'status' => 'success'
             ]);
             return response()->json([
                 "message" => "Pembayaran diverifikasi"
@@ -221,7 +257,7 @@ class EventRegistrationController extends Controller
             ], 404);
         }
 
-        $verifikasiPembayaran = Pembayaran::where('id', $eventRegistration->id)->where('status', 'selesai')->first();
+        $verifikasiPembayaran = Pembayaran::where('id', $eventRegistration->id)->where('status', 'success')->first();
 
         if ($verifikasiPembayaran) {
             return response()->json([
@@ -229,10 +265,10 @@ class EventRegistrationController extends Controller
             ], 422);
         }
 
-        $pembayaran = Pembayaran::where('id', $eventRegistration->id)->where('status', 'proses')->first();
+        $pembayaran = Pembayaran::where('id', $eventRegistration->id)->where('status', 'process')->first();
 
         if ($pembayaran) {
-            Pembayaran::where('id', $pembayaran->id)->where('status', 'proses')->delete();
+            Pembayaran::where('id', $pembayaran->id)->where('status', 'process')->delete();
             RegistrasiEvent::where('id', $pembayaran->id)->delete();
 
             return response()->json([
