@@ -1,7 +1,7 @@
 import React from 'react'
-import PageComponent from '../components/PageComponent'
-import { useStateContext } from '../contexts/ContextProvider'
-import CategoryListItem from '../components/CategoryListItem';
+import PageComponent from '../../components/PageComponent'
+import { useStateContext } from '../../contexts/ContextProvider'
+import CategoryListItem from '../../components/CategoryListItem';
 
 const Category = () => {
     const { categories } = useStateContext();

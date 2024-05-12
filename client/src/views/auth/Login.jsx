@@ -1,39 +1,40 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import axiosClient from "../axios";
-import { useStateContext } from "../contexts/ContextProvider";
+import { Link, useNavigate  } from "react-router-dom";
+import axiosClient from "../../axios";
+import { useStateContext } from "../../contexts/ContextProvider";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 
 const Login = () => {
-    const { setCurrentUser, setUserToken } = useStateContext();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState({ __html: "" });
+    const [input, setInput] = useState({
+        email: '',
+        password: ''
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState([]);
+    const navigate = useNavigate();
 
-    const onSubmit = (ev) => {
-        ev.preventDefault();
-        setError({ __html: "" });
+    const handleInput = (e) => {
+        setInput(prevState => ({
+            ...prevState,
+            [e.target.id]: e.target.value
+        }))
+    }
 
-        axiosClient
-            .post("/login", {
-                email,
-                password,
-            })
-            .then(({ data }) => {
-                setCurrentUser(data.data.user);
-                setUserToken(data.data.token);
-            })
-            .catch((error) => {
-                if (error.response) {
-                    const finalErrors = Object.values(error.response.data.errors).reduce(
-                        (accum, next) => [...accum, ...next],
-                        []
-                    );
-                    setError({ __html: finalErrors.join("<br/>") });
+    const handleLogin = (e) => {
+        e.preventDefault();
+        setIsLoading(true)
+        axiosClient.post('/login',  input)
+            .then(res => {
+                localStorage.setItem('token', res.data.data.token)
+                setIsLoading(false)
+                window.location.href = '/dashboard'
+            }).catch(errors => {
+                setIsLoading(false)
+                if (errors.response.status == 422) {
+                    setErrors(errors.response.data.data.errors)
                 }
-                console.log(error);
-            });
-    };
+            })
+    }
 
     return (
         <>
@@ -65,15 +66,10 @@ const Login = () => {
                     Selamat datang, masuk akun untuk melanjutkan
                 </span>
 
-                {error.__html && (
-                    <div
-                        className="bg-red-500 rounded py-2 px-3 text-white"
-                        dangerouslySetInnerHTML={error}
-                    ></div>
-                )}
+                <p>{errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}</p>
 
                 <form
-                    onSubmit={onSubmit}
+                    onSubmit={handleLogin}
                     className="space-y-2"
                     action="#"
                     method="POST"
@@ -88,8 +84,8 @@ const Login = () => {
                                 autoComplete="email"
                                 placeholder="example@email.com"
                                 required
-                                value={email}
-                                onChange={(ev) => setEmail(ev.target.value)}
+                                value={input.email}
+                                onChange={handleInput}
                                 className="relative block w-full appearance-none rounded-md
                                         rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 
                                         placeholder-gray-500 focus:z-10 focus:border-[#142D55]
@@ -109,8 +105,8 @@ const Login = () => {
                                 type="password"
                                 autoComplete="current-password"
                                 placeholder="********"
-                                value={password}
-                                onChange={(ev) => setPassword(ev.target.value)}
+                                value={input.password}
+                                onChange={handleInput}
                                 required
                                 className="relative block w-full appearance-none rounded-md
                                                     rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 
@@ -139,15 +135,26 @@ const Login = () => {
                     </div>
 
                     <div className="flex justify-end mr-8">
+
+                    {isLoading &&
                         <button
                             type="submit"
-                            className="group relative flex justify-center rounded-xl 
-                        bg-[#142D55] px-4 text-xs leading-6 text-white shadow-xl 
-                            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 
-                        focus-visible:outline-[#142D55] hover:scale-110"
+                            className="group relative flex justify-center rounded-xl bg-[#142D55] px-4 text-xs leading-6 text-white shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142D55] hover:scale-110"
+                        >
+                            <svg aria-hidden="true" role="status" className="inline w-4 h-4 mr-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB" />
+                                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor" />
+                            </svg>
+                        </button>
+                    }
+                    {!isLoading &&
+                        <button
+                            type="submit"
+                            className="group relative flex justify-center rounded-xl bg-[#142D55] px-4 text-xs leading-6 text-white shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142D55] hover:scale-110"
                         >
                             Login
                         </button>
+                    }
                     </div>
                 </form>
 
