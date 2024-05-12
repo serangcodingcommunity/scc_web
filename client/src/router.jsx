@@ -10,6 +10,7 @@ import Category from './views/Category.jsx';
 import Home from './views/Home.jsx';
 import About from './views/About.jsx';
 import Event from './views/Event.jsx';
+import SelectedEvent from './views/SelectedEvent.jsx';
 import Member from './views/Member.jsx';
 
 
@@ -32,7 +33,18 @@ const router = createBrowserRouter([
             },
             {
                 path: "/events",
-                element: <Event />,
+                element: <Event title="Upcoming Events" />,
+            },
+            // add route for past events
+            {
+                path: "/pastevents",
+                element: <Event title="Past Events" />,
+            },
+            // temporary route for testing
+            // should /{id}/event
+            {
+                path: "/selectedevent",
+                element: <SelectedEvent />,
             },
             {
                 path: "/members",

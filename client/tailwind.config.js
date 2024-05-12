@@ -8,7 +8,14 @@ export default {
     fontFamily: {
       sans: ['Poppins', 'Helvetica', 'Arial', 'sans-serif'],
     },
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#142D55',
+        bgPrimary: '#E9E9E9',
+        bgPagination: '#D9D9D9',
+        desc: '#6C6C6C'
+      }
+    },
   },
   plugins: [
     require('@tailwindcss/forms'),
