@@ -11,10 +11,12 @@ import Home from './views/default/home/Home.jsx';
 import About from './views/default/About.jsx';
 import Event from './views/default/Event.jsx';
 import DetailEvent from './views/default/DetailEvent.jsx';
-import Member from './views/default/Member.jsx';
+import Member from './views/default/member/Member.jsx';
 import Profile from './views/default/Profile.jsx';
 import GoogleCallback from './views/auth/GoogleCallback.jsx';
 import GithubCallback from './views/auth/GithubCallback.jsx';
+import NotFound from './views/NotFound.jsx';
+import MemberShow from './views/default/member/MemberShow.jsx';
 
 
 const router = createBrowserRouter([
@@ -31,6 +33,10 @@ const router = createBrowserRouter([
                 element: <Home />,
             },
             {
+                path: "*",
+                element: <NotFound />
+            },
+            {
                 path: "/about",
                 element: <About />,
             },
@@ -38,20 +44,22 @@ const router = createBrowserRouter([
                 path: "/events",
                 element: <Event title="Upcoming Events" />,
             },
-            // add route for past events
             {
                 path: "/pastevents",
                 element: <Event title="Past Events" />,
             },
-            // temporary route for testing
-            // should /{id}/event
             {
                 path: "/selectedevent",
                 element: <DetailEvent />,
             },
             {
                 path: "/members",
-                element: <Member />,
+                element: <Member title="Community Members" />,
+            },
+            // pake cek token
+            {
+                path: "/member/id",
+                element: <MemberShow title="Member Profile" />,
             },
             {
                 path: "/",
@@ -72,13 +80,13 @@ const router = createBrowserRouter([
                     {
                         path: "/auth/github",
                         element: <GithubCallback />,
-                    }
+                    },
                 ]
             },
         ]
     },
     {
-        path: "/dashboard",
+        path: "/",
         element: <AuthLayout />,
         children: [
             {

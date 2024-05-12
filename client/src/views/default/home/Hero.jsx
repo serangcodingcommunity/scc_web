@@ -4,10 +4,6 @@ import logo from '../../../assets/logo.png';
 import logoDark from '../../../assets/logoDark.png';
 import { useStateContext } from '../../../contexts/ContextProvider';
 import { FaTelegramPlane, FaInstagram, FaYoutube } from "react-icons/fa";
-// import blob from "../../../assets/blob/blob.svg";
-// import blobWhite from "../../../assets/blob/blobWhite.svg";
-// import tabletPattern from "../../../assets/blob/tabletPattern.svg";
-
 
 const Hero = () => {
     const { darkMode, toggleDarkMode } = useStateContext();
@@ -33,9 +29,6 @@ const Hero = () => {
                         </button>
                     </Link>
 
-                    {/* <img src={tabletPattern} alt='Blob' className='absolute right-20 -top-48 h-128 hidden md:block z-20' /> */}
-                    {/* <img src={darkMode ? blobWhite : blob} alt='Blob' className='absolute left-2 top-16 h-64 hidden md:block' />
-                    <img src={darkMode ? blobWhite : blob} alt='Blob' className='absolute right-2 bottom-16 h-64 hidden md:block' /> */}
                     <div className='flex justify-center items-center mb-16'>
                         <a href="https://t.me/serangcodingcommunity" target="_blank" rel="noreferrer" className={`mx-2 p-1.5 rounded-xl ${darkMode ? 'text-[#142D55] bg-white' : 'text-white bg-[#142D55]'}`}>
                             <FaTelegramPlane size={30} />

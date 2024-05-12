@@ -50,7 +50,7 @@ class UsersController extends Controller
         $user = Auth::user();
         $userName = $user->name;
         $timestamp = now()->timestamp;
-        $rules = ['profile_photo_path' => 'required|file'];
+        $rules = ['profile_photo_path' => 'required|file|max:500'];
     
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {

@@ -52,9 +52,9 @@ const Event = ({ title }) => {
 
             <div className='flex justify-center'>
                 <ReactPaginate
-                    pageCount={8} // Total number of pages
-                    pageRangeDisplayed={3} // Number of pages displayed in the pagination
-                    onPageChange={handlePageClick} // Callback function when a page is clicked
+                    pageCount={8}
+                    pageRangeDisplayed={3}
+                    onPageChange={handlePageClick} 
                     containerClassName={'pagination'}
                     pageClassName={`hover:bg-primary hover:text-white px-1 rounded-md`}
                     previousLabel={<RiArrowLeftSLine className='hover:bg-primary hover:text-white' />}

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import axiosClient from "../../axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStateContext } from "../../contexts/ContextProvider";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 
@@ -10,38 +10,60 @@ const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
-    const [error, setError] = useState({ __html: '' });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [loginGoogleUrl, setLoginGoogleUrl] = useState(null);
+    const [loginGithubUrl, setLoginGithubUrl] = useState(null);
 
-    const onSubmit = (ev) => {
-        ev.preventDefault();
-        setError({ __html: '' });
-
-        axiosClient.post('/register', {
-            name,
-            email,
-            password,
-            password_confirmation: passwordConfirmation
-        })
-            .then(({ data }) => {
-                setCurrentUser(data.data.user);
-                setUserToken(data.data.token);
+    const handleRegister = (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        axiosClient
+            .post("/register", {
+                name,
+                email,
+                password,
+                password_confirmation: passwordConfirmation,
+            })
+            .then(res => {
+                localStorage.setItem('token', res.data.data.token)
+                setIsLoading(false)
+                window.location.href = '/dashboard'
             })
             .catch((error) => {
+                setIsLoading(false);
                 if (error.response) {
-                    const finalErrors = Object.values(error.response.data.errors).reduce((accum,
-                        next) => [...accum, ...next], []);
-                    console.log(finalErrors);
-                    setError({ __html: finalErrors.join('<br/>') });
+                    setError(error.response.data.message);
+                } else {
+                    setError("Something went wrong. Please try again later.");
                 }
-                console.log(error)
             });
     };
+    
+    useEffect(() => {
+        axiosClient.get('/google/redirect')
+            .then((res) => {
+                setLoginGoogleUrl(res.data.url)
+            })
+            .catch(error => {
+                console.error("Error fetching Google login URL:", error);
+            });
+    }, []);
+
+    useEffect(() => {
+        axiosClient.get('/github/redirect')
+            .then((res) => {
+                setLoginGithubUrl(res.data.url)
+            })
+            .catch(error => {
+                console.error("Error fetching Github login URL:", error);
+            });
+    }, []);
 
     return (
         <>
             <div className="mt-20 sm:mx-auto sm:w-full sm:max-w-sm rounded-lg p-5 shadow-xl border-2 border-slate-50 relative bg-white">
                 <span className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1/4 h-4 rounded-md bg-[#142D55]"></span>
-
 
                 <h2 className="text-left text-xl leading-9 tracking-tight text-gray-900 mr-1">
                     Register
@@ -49,27 +71,25 @@ const Register = () => {
 
                 <span className="text-xs font-semibold">Selamat datang, daftar akun untuk melanjutkan</span>
 
-                {error.__html && (<div className="bg-red-500 rounded py-2 px-3 text-white"
-                    dangerouslySetInnerHTML={error}>
-                </div>)}
+                {error && (
+                    <div className="bg-red-500 rounded py-2 px-3 text-white">
+                        {error}
+                    </div>
+                )}
 
-                <form onSubmit={onSubmit} className="space-y-2" action="#" method="POST">
+                <form onSubmit={handleRegister} className="space-y-2" action="#" method="POST">
                     <div className="space-y-5 mx-8">
-                        <label
-                            htmlFor="name"
-                            className="sr-only"
-                        >
-                        </label>
+                        <label htmlFor="name" className="sr-only">Name</label>
                         <div className="mt-2">
                             <input
                                 id="name"
                                 name="name"
                                 type="text"
-                                autoComplete="email"
-                                placeholder="Masukan nama lengkap"
+                                autoComplete="name"
+                                placeholder="Full Name"
                                 required
                                 value={name}
-                                onChange={(ev) => setName(ev.target.value)}
+                                onChange={(e) => setName(e.target.value)}
                                 className="relative block w-full appearance-none rounded-md
                                         rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 
                                         placeholder-gray-500 focus:z-10 focus:border-[#142D55]
@@ -79,21 +99,17 @@ const Register = () => {
                     </div>
 
                     <div className="mx-8">
-                        <label
-                            htmlFor="email"
-                            className="sr-only"
-                        >
-                        </label>
+                        <label htmlFor="email" className="sr-only">Email Address</label>
                         <div className="mt-2">
                             <input
                                 id="email"
                                 name="email"
                                 type="email"
                                 autoComplete="email"
-                                placeholder="example@email.com"
+                                placeholder="example@example.com"
                                 required
                                 value={email}
-                                onChange={(ev) => setEmail(ev.target.value)}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="relative block w-full appearance-none rounded-md
                                                     rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 
                                                     placeholder-gray-500 focus:z-10 focus:border-[#142D55]
@@ -103,21 +119,17 @@ const Register = () => {
                     </div>
 
                     <div className="mx-8">
-                        <label
-                            htmlFor="password"
-                            className="sr-only"
-                        >
-                        </label>
+                        <label htmlFor="password" className="sr-only">Password</label>
                         <div className="mt-2">
                             <input
                                 id="password"
                                 name="password"
                                 type="password"
-                                autoComplete="current-password"
+                                autoComplete="new-password"
                                 placeholder="********"
                                 required
                                 value={password}
-                                onChange={(ev) => setPassword(ev.target.value)}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="relative block w-full appearance-none rounded-md
                                                     rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 
                                                     placeholder-gray-500 focus:z-10 focus:border-[#142D55]
@@ -127,20 +139,17 @@ const Register = () => {
                     </div>
 
                     <div className="mx-8">
-                        <label
-                            htmlFor="password-confirmation"
-                            className="sr-only"
-                        >
-                        </label>
+                        <label htmlFor="passwordConfirmation" className="sr-only">Confirm Password</label>
                         <div className="mt-2">
                             <input
-                                id="password-confirmation"
-                                name="password_confirmation"
+                                id="passwordConfirmation"
+                                name="passwordConfirmation"
                                 type="password"
+                                autoComplete="new-password"
                                 placeholder="********"
                                 required
                                 value={passwordConfirmation}
-                                onChange={(ev) => setPasswordConfirmation(ev.target.value)}
+                                onChange={(e) => setPasswordConfirmation(e.target.value)}
                                 className="relative block w-full appearance-none rounded-md
                                                 rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 
                                                 placeholder-gray-500 focus:z-10 focus:border-[#142D55]
@@ -159,12 +168,17 @@ const Register = () => {
 
                         <button
                             type="submit"
-                            className="group relative flex justify-center rounded-xl 
-                        bg-[#142D55] px-4 text-xs leading-6 text-white shadow-xl 
-                            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 
-                        focus-visible:outline-[#142D55] hover:scale-110"
+                            className={`group relative flex justify-center rounded-xl bg-[#142D55] px-4 text-xs leading-6 text-white shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142D55] hover:scale-110 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={isLoading}
                         >
-                            Register
+                            {isLoading ? (
+                                <svg aria-hidden="true" role="status" className="inline w-4 h-4 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB" />
+                                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor" />
+                                </svg>
+                            ) : (
+                                'Register'
+                            )}
                         </button>
                     </div>
                 </form>
@@ -174,11 +188,11 @@ const Register = () => {
                 </p>
 
                 <div className="flex justify-center space-x-4 mt-2">
-                    <button className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
+                    <button onClick={() => window.location.href = loginGoogleUrl} className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
                         <FaGoogle className="h-3 w-3 mr-2" />
                         Google
                     </button>
-                    <button className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
+                    <button onClick={() => window.location.href = loginGithubUrl} className="bg-white text-black border border-black rounded-lg flex items-center text-xs p-1 hover:scale-110">
                         <FaGithub className="h-3 w-3 mr-2" />
                         GitHub
                     </button>

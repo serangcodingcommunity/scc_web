@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import Swal from 'sweetalert2';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { NavLink, Navigate, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useStateContext } from '../contexts/ContextProvider.jsx';
 import axiosClient from '../axios.js';
 import { Link } from 'react-router-dom';
@@ -24,7 +24,7 @@ export default function AuthLayout() {
     const navigate = useNavigate();
 
     if (!token) {
-        return <Navigate to="/login" />;
+        return navigate('/login');
     }
 
     const handleLogout = () => {
