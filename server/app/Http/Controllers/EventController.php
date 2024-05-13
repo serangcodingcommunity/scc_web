@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\RegistrasiEvent;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class EventController extends Controller
@@ -52,15 +53,15 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $validatedData = Validator::make($request->all(), [
-            "title" => ['required', 'unique:events,title'],
-            "keterangan" => ['required'],
-            "image" => ['required'],
-            "price" => ['required'],
-            "quota" => ['required'],
-            "status" => ['required'],
-            "event_date" => ['required'],
-            "lokasi" => ['required'],
-            "nid_1" => ['required'],
+            "title" => 'required|unique:events,title',
+            "keterangan" => 'required',
+            "image" => 'file|max:512',
+            "price" => 'required',
+            "quota" => 'required',
+            "status" => 'required',
+            "event_date" => 'required',
+            "lokasi" => 'required',
+            "nid_1" => 'required',
         ]);
 
         if ($validatedData->fails()) {
@@ -71,8 +72,13 @@ class EventController extends Controller
         }
 
         $slug = strtolower(slugify($request->input('title')));
-        $image = base64_encode($request->image);
         $user = Auth::user();
+
+        $timestamp = now()->timestamp;
+
+        $image =  strtolower(str_replace(' ', '', $request->title)) . $timestamp . '.' . $request->file('image')->getClientOriginalExtension();
+        $filePath = 'images/events/' . $image;
+        Storage::disk('public')->put($filePath, file_get_contents($request->file('image')));
 
         $event = Event::create([
             'slug' => $slug,
@@ -222,14 +228,14 @@ class EventController extends Controller
 
         $validatedData = Validator::make($request->all(), [
             "title" => ['required', Rule::unique('events')->ignore($event->id)],
-            "keterangan" => ['required'],
-            "image" => ['required'],
-            "price" => ['required'],
-            "quota" => ['required'],
-            "status" => ['required'],
-            "event_date" => ['required'],
-            "lokasi" => ['required'],
-            "nid_1" => ['required'],
+            "keterangan" => 'required',
+            "image" => 'file|max:512',
+            "price" => 'required',
+            "quota" => 'required',
+            "status" => 'required',
+            "event_date" => 'required',
+            "lokasi" => 'required',
+            "nid_1" => 'required',
         ]);
 
         if ($validatedData->fails()) {
@@ -240,8 +246,21 @@ class EventController extends Controller
         }
 
         $slug = strtolower(slugify($request->input('title')));
-        $image = base64_encode($request->image);
         $user = Auth::user();
+
+        if ($request->hasFile('image')) {
+            if ($event->image) {
+                $oldImagePath = 'images/events/' . $event->image;
+                Storage::disk('public')->delete($oldImagePath);
+            }
+
+            $timestamp = now()->timestamp;
+            $image =  strtolower(str_replace(' ', '', $request->title)) . $timestamp . '.' . $request->file('image')->getClientOriginalExtension();
+            $filePath = 'images/events/' . $image;
+            Storage::disk('public')->put($filePath, file_get_contents($request->file('image')));
+        } else {
+            $image = $event->image;
+        }
 
         Event::where('id', $request->id)->update([
             'slug' => $slug,
@@ -330,7 +349,11 @@ class EventController extends Controller
                 "error" => "Tidak dapat menghapus event karena masih ada registrasi event terkait"
             ], 422);
         } else {
-            Event::where('id', $request->id)->delete();
+            if ($event->image) {
+                $oldImagePath = 'images/events/' . $event->image;
+                Storage::disk('public')->delete($oldImagePath);
+            }
+            Event::where('id', $event->id)->delete();
             return response()->json([
                 "message" => "Event berhasil dihapus"
             ], 200);

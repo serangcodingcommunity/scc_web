@@ -31,14 +31,14 @@ Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->middl
 Route::get('/events/narasumber', [NarasumberController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/events/narasumber', [NarasumberController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/events/narasumber/{id}', [NarasumberController::class, 'show'])->middleware('auth:sanctum');
-Route::put('/events/narasumber/{id}', [NarasumberController::class, 'update'])->middleware('auth:sanctum');
+Route::post('/events/narasumber/{id}', [NarasumberController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('/events/narasumber/{id}', [NarasumberController::class, 'destroy'])->middleware('auth:sanctum');
 
 /* Event */
 Route::get('/events', [EventController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/events', [EventController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/events/{id}', [EventController::class, 'show'])->middleware('auth:sanctum');
-Route::put('/events/{id}', [EventController::class, 'update'])->middleware('auth:sanctum');
+Route::post('/events/{id}', [EventController::class, 'update'])->middleware('auth:sanctum');
 Route::patch('/events/{id}', [EventController::class, 'publish'])->middleware('auth:sanctum');
 Route::delete('/events/{id}', [EventController::class, 'destroy'])->middleware('auth:sanctum');
 Route::put('/events/{id}/tersedia', [EventController::class, 'tersediaEvent'])->middleware('auth:sanctum');
@@ -49,7 +49,7 @@ Route::get('/event/registration', [EventRegistrationController::class, 'index'])
 Route::post('/event/registration', [EventRegistrationController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/event/registration/{id}', [EventRegistrationController::class, 'show'])->middleware('auth:sanctum');
 Route::delete('/event/registration/{id}', [EventRegistrationController::class, 'destroy'])->middleware('auth:sanctum');
-Route::put('/event/registration/{id}/payment', [EventRegistrationController::class, 'bayar'])->middleware('auth:sanctum');
+Route::post('/event/registration/{id}/payment', [EventRegistrationController::class, 'bayar'])->middleware('auth:sanctum');
 Route::put('/event/registration/{id}/accept', [EventRegistrationController::class, 'accept'])->middleware('auth:sanctum');
 Route::put('/event/registration/{id}/reject', [EventRegistrationController::class, 'reject'])->middleware('auth:sanctum');
 

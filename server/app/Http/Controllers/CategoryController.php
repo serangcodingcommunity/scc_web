@@ -101,17 +101,16 @@ class CategoryController extends Controller
             ], 404);
         }
 
-        $relatedPostsCount = $category->posts()->count();
-        if ($relatedPostsCount > 0) {
-            return response()->json([
-                "error" => "Category still related to posts"
-            ], 422);
-        }
+        // if (!$category->posts()) {
+        //     return response()->json([
+        //         "error" => "Category still related to posts"
+        //     ], 422);
+        // }
 
         $category->delete();
 
         return response()->json([
-            "data" => "ok"
+            "message" => "Category deleted successfully"
         ], 200);
     }
 }

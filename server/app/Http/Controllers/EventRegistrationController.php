@@ -40,7 +40,6 @@ class EventRegistrationController extends Controller
     {
         $validatedData = Validator::make($request->all(), [
             "event_id" => ['required'],
-            "user_id" => ['required'],
         ]);
 
         if ($validatedData->fails()) {
@@ -99,6 +98,31 @@ class EventRegistrationController extends Controller
 
     public function bayar(Request $request, string $id)
     {
+        $registrasiEvent = RegistrasiEvent::find($id);
+        $pembayaran = Pembayaran::find($id);
+
+        if (!$registrasiEvent) {
+            return response()->json([
+                "error" => "Tidak ada tagihan pembayaran untuk registrasi event ini",
+            ], 404);
+        }
+
+        $event = Event::where('id', $registrasiEvent->event_id)->first();
+
+        $cekPembCount = RegistrasiEvent::where('event_id', $event->id)
+            ->whereHas('pembayaran', function ($query) {
+                $query->whereIn('status', ['success', 'process']);
+            })
+            ->count();
+
+        if (!$pembayaran) {
+            if ($cekPembCount >= $event->quota) {
+                return response()->json([
+                    "error" => "Mohon maaf antrian bayar penuh, silahkan coba beberapa saat lagi",
+                ], 422);
+            }
+        }
+
         $user = Auth::user();
         $userName = $user->name;
         $timestamp = now()->timestamp;
@@ -112,64 +136,31 @@ class EventRegistrationController extends Controller
             ], 422);
         }
 
-        $pembayaran = RegistrasiEvent::find($id);
-        $pembayaranExist = Pembayaran::find($id);
-        $registrasiEvent = Event::where('id', $pembayaran->event_id)->first();
-
-        $cekPembCount = RegistrasiEvent::where('event_id', $registrasiEvent->id)
-            ->whereHas('pembayaran', function ($query) {
-                $query->where('status', ['success', 'process']);
-            })
-            ->count();
-
-        if ($cekPembCount >= $registrasiEvent->quota) {
-            return response()->json([
-                "error" => "Mohon maaf antrian bayar penuh, silahkan coba beberapa saat lagi",
-            ], 422);
-        }
-
-        if (!$pembayaran) {
-            return response()->json([
-                "error" => "Tidak ada tagihan pembayaran untuk registrasi event ini",
-            ], 404);
-        }
-
-        if ($pembayaranExist) {
-            return response()->json([
-                "error" => "Anda sudah melakukan pembayaran",
-            ], 422);
-        }
-
         if ($request->hasFile('bukti_pemb')) {
-            if ($pembayaran->bukti_pemb) {
-                $profilePhotoPath = 'pembayaran/' . $pembayaran->bukti_pemb;
-                Storage::disk('public')->delete($profilePhotoPath);
-            }
+            $image = strtolower(str_replace(' ', '', $userName)) . $timestamp . '.' . $request->file('bukti_pemb')->getClientOriginalExtension();
+            $filePath = 'images/payments/' . $image;
 
-            $image = $userName . $timestamp . '.' . $request->file('bukti_pemb')->getClientOriginalExtension();
-            $filePath = 'pembayaran/' . $image;
-            Storage::disk('public')->put($filePath, file_get_contents($request->file('bukti_pemb')));
-
-            $pembayaran = new Pembayaran();
-            $pembayaran->id = $id;
-            $pembayaran->bukti_pemb = $image;
-            $pembayaran->status = 'process';
-            $pembayaran->save();
-
-            $eventRegistrationCount = RegistrasiEvent::where('event_id', $registrasiEvent->id)
-                ->whereHas('pembayaran', function ($query) {
-                    $query->where('status', 'success');
-                })
-                ->count();
-            $quotaNow = $registrasiEvent->quota - $eventRegistrationCount;
-            if ($quotaNow <= 0) {
-                Event::where('id', $registrasiEvent->id)->update([
-                    'status' => 'soldout',
-                ]);
+            if ($pembayaran) {
+                if ($pembayaran->bukti_pemb) {
+                    $oldImagePath = 'images/payments/' . $pembayaran->bukti_pemb;
+                    Storage::disk('public')->delete($oldImagePath);
+                }
+                $pembayaran->bukti_pemb = $image;
+                $pembayaran->status = 'process';
+                $pembayaran->save();
+                $message = "Bukti pembayaran berhasil diperbarui";
+            } else {
+                Storage::disk('public')->put($filePath, file_get_contents($request->file('bukti_pemb')));
+                $pembayaran = new Pembayaran();
+                $pembayaran->id = $id;
+                $pembayaran->bukti_pemb = $image;
+                $pembayaran->status = 'process';
+                $pembayaran->save();
+                $message = "Bukti pembayaran berhasil diunggah";
             }
 
             return response()->json([
-                "message" => "Pembayaran akan diverifikasi",
+                "message" => $message
             ], 200);
         }
     }
@@ -239,6 +230,8 @@ class EventRegistrationController extends Controller
             ], 404);
         } else {
             Pembayaran::where('id', $pembayaran->id)->update([
+                'keterangan' => 'success',
+                'pesan' => 'pembayaran diverifikasi',
                 'status' => 'success'
             ]);
             return response()->json([
@@ -249,6 +242,18 @@ class EventRegistrationController extends Controller
 
     public function reject(Request $request)
     {
+        $validatedData = Validator::make($request->all(), [
+            "keterangan" => ['required'],
+            "pesan" => ['required'],
+        ]);
+
+        if ($validatedData->fails()) {
+            return response()->json([
+                "message" => "Validation error",
+                "errors" => $validatedData->errors()
+            ], 422);
+        }
+
         $eventRegistration = RegistrasiEvent::find($request->id);
 
         if (!$eventRegistration) {
@@ -268,11 +273,13 @@ class EventRegistrationController extends Controller
         $pembayaran = Pembayaran::where('id', $eventRegistration->id)->where('status', 'process')->first();
 
         if ($pembayaran) {
-            Pembayaran::where('id', $pembayaran->id)->where('status', 'process')->delete();
-            RegistrasiEvent::where('id', $pembayaran->id)->delete();
-
+            Pembayaran::where('id', $request->id)->update([
+                'keterangan' => $request->keterangan,
+                'pesan' => $request->pesan,
+                'status' => 'reject'
+            ]);
             return response()->json([
-                "message" => "Pembayaran dan Registrasi event berhasil ditolak"
+                "message" => "Pembayaran berhasil ditolak"
             ], 200);
         } else {
             return response()->json([
