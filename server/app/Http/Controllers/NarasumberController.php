@@ -23,7 +23,7 @@ class NarasumberController extends Controller
     {
         $validatedData = Validator::make($request->all(), [
             "name" => 'required',
-            "image" => 'file|max:512'
+            "image" => 'file|mimes:jpg,jpeg,png,webp|max:512'
         ]);
 
         if ($validatedData->fails()) {
@@ -76,7 +76,7 @@ class NarasumberController extends Controller
 
         $validatedData = Validator::make($request->all(), [
             "name" => 'required',
-            "image" => 'file|max:512'
+            "image" => 'file|mimes:jpg,jpeg,png,webp|max:512'
         ]);
 
         if ($validatedData->fails()) {

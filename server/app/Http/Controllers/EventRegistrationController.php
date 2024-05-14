@@ -126,7 +126,7 @@ class EventRegistrationController extends Controller
         $user = Auth::user();
         $userName = $user->name;
         $timestamp = now()->timestamp;
-        $rules = ['bukti_pemb' => 'required|file|max:512'];
+        $rules = ['bukti_pemb' => 'required|file|mimes:jpg,jpeg,png,webp|max:512'];
 
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {

@@ -55,7 +55,7 @@ class EventController extends Controller
         $validatedData = Validator::make($request->all(), [
             "title" => 'required|unique:events,title',
             "keterangan" => 'required',
-            "image" => 'file|max:512',
+            "image" => 'file|mimes:jpg,jpeg,png,webp|max:512',
             "price" => 'required',
             "quota" => 'required',
             "status" => 'required',
@@ -229,7 +229,7 @@ class EventController extends Controller
         $validatedData = Validator::make($request->all(), [
             "title" => ['required', Rule::unique('events')->ignore($event->id)],
             "keterangan" => 'required',
-            "image" => 'file|max:512',
+            "image" => 'file|mimes:jpg,jpeg,png,webp|max:512',
             "price" => 'required',
             "quota" => 'required',
             "status" => 'required',
