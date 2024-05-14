@@ -29,14 +29,15 @@ Route::put('/categories/{id}', [CategoryController::class, 'update'])->middlewar
 Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->middleware('auth:sanctum');
 
 /* Posts */
-Route::post('/posts', [PostController::class, 'store'])->middleware('auth:sanctum');
-Route::post('/posts/{id}/comment', [PostController::class, 'comment'])->middleware('auth:sanctum');
-Route::post('/posts/{id}/like', [PostController::class, 'like'])->middleware('auth:sanctum');
 Route::get('/posts', [PostController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/posts', [PostController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/posts/{id}', [PostController::class, 'show'])->middleware('auth:sanctum');
 Route::put('/posts/{id}', [PostController::class, 'update'])->middleware('auth:sanctum');
-Route::patch('/posts/{id}', [PostController::class, 'publish'])->middleware('auth:sanctum');
 Route::delete('/posts/{id}', [PostController::class, 'destroy'])->middleware('auth:sanctum');
+Route::patch('/posts/{id}', [PostController::class, 'publish'])->middleware('auth:sanctum');
+
+Route::post('/posts/{id}/comment', [PostController::class, 'comment'])->middleware('auth:sanctum');
+Route::post('/posts/{id}/like', [PostController::class, 'like'])->middleware('auth:sanctum');
 Route::delete('/posts/{id}/unlike', [PostController::class, 'unlike'])->middleware('auth:sanctum');
 
 /* Feedback */

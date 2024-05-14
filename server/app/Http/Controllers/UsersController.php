@@ -10,10 +10,8 @@ use App\Models\Sosmed;
 use App\Models\Portofolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
-use Intervention\Image\Facades\Image;
-use Illuminate\Support\Str;
 
 
 class UsersController extends Controller
@@ -84,44 +82,32 @@ class UsersController extends Controller
         //
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $request->validate([
-            'photo_profile_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'photo_profile_path' => 'file|max:512'
+        ], [
+            'photo_profile_path.max' => 'File harus berukuran 500 kb'
         ]);
 
-        if (!empty($user->profile_photo_path)) {
-            $fileToDelete = public_path('images/profile-photo/' . $user->profile_photo_path);
-            if (File::exists($fileToDelete))
-            {
-                File::delete($fileToDelete);
+        if($request->hasFile('profile_photo_path')) {
+            if ($user->profile_photo_path) {
+                $profilePhotoPath = 'images/photo-profile/' . $user->profile_photo_path;
+                Storage::disk('public')->delete($profilePhotoPath);
             }
-        }
 
-        if ($request->file('photo_profile_path')) {
-            $image = $request->file('photo_profile_path');
-            $timestamp = now()->format('dmYHis');
-            $randomNumber = mt_rand(10000, 99999);
-            $imageName = $user->name . '-' . $timestamp . $randomNumber . '.' . 'webp';
-            $image->move(public_path('images/profile-photo'), $imageName);
-
-            // Save the new image name to the database
-            $user->profile_photo_path = $imageName;
+            $image = $userName . '-' . $timestamp . '.' . $request->file('profile_photo_path')->getClientOriginalExtension();
+            $filePath = 'images/photo-profile/' . $image; 
+            Storage::disk('public')->put($filePath, file_get_contents($request->file('profile_photo_path')));
+            $user->profile_photo_path = $image;
             $user->save();
 
             return response()->json([
-                'data' => [
-                    'id'=> $user->id,
-                    'photo_profile_path' => $imageName
-                ]
+                'message' => 'Foto profile berhasil diupdate',
             ], 200);
         }
-
-        return response()->json([
-            'message' => 'File tidak ditemukan'
-        ], 400);
     }
         
 // Member
@@ -485,30 +471,45 @@ class UsersController extends Controller
 // Portofolio
     public function storePortofolio(Request $request)
     {
+        $user = Auth::user();
+        $portofolio = new Portofolio();
+        $userName = $user->name;
+        $timestamp = now()->timestamp;
+
         $validatedData = $request->validate([
-            'user_id' => 'required',
-            'title' => 'required|string',
+            'name' => 'required|string',
+            'link' => 'required|string',
             'keterangan' => 'required|string',
-            'image' => 'required|string',
+            'image' => 'file|max:512',
             'project_date' => 'required|date',
+        ], [
+            'image.max' => 'File harus berukuran 500 kb'
         ]);
 
-        if (!User::where('id', $validatedData['user_id'])->exists()) {
-            return response()->json([
-                'message' => 'User ini tidak ada'
-            ], 404);
-        } elseif (Portofolio::where('user_id', $validatedData['user_id'])->exists()) {
+        if (Portofolio::where('user_id', $user->id)->exists()) {
             return response()->json([
                 'message' => 'Sudah mengisi portofolio'
             ], 409);
         }
-        
-        $portofolio = new Portofolio();
-        $portofolio->user_id = $validatedData['user_id'];
-        $portofolio->title = $validatedData['title'];
-        $portofolio->slug = slugify($validatedData['title']);
+    
+        $portofolio->user_id = $user->id;
+        $portofolio->name = $validatedData['name'];
+        $portofolio->link = $validatedData['link'];
         $portofolio->keterangan = $validatedData['keterangan'];
-        $portofolio->image = $validatedData['image'];
+        
+        if($request->hasFile('image')) {
+            if ($portofolio->image) {
+                $profilePhotoPath = 'images/portofolio/' . $portofolio->image;
+                Storage::disk('public')->delete($profilePhotoPath);
+            }
+
+            $image = $userName . '-' . $timestamp . '.' . $request->file('image')->getClientOriginalExtension();
+            $filePath = 'images/portofolio/' . $image; 
+            Storage::disk('public')->put($filePath, file_get_contents($request->file('image')));
+
+            $portofolio->image = $image;
+        }
+
         $portofolio->project_date = $validatedData['project_date'];
         $portofolio->save();
 
@@ -517,8 +518,8 @@ class UsersController extends Controller
             'data' => [
                 'id' => $portofolio->id,
                 'user_id' => $portofolio->user_id,
-                'title' => $portofolio->title,
-                'slug' => $portofolio->slug,
+                'name' => $portofolio->name,
+                'link' => $portofolio->link,
                 'keterangan' => $portofolio->keterangan,
                 'image' => $portofolio->image,
                 'project_date' => $portofolio->project_date
@@ -528,45 +529,61 @@ class UsersController extends Controller
 
     public function updatePortofolio(Request $request, string $id)
     {
-        $portofolio = Portofolio::where('user_id', $id)->first();
+        $portofolio = Portofolio::find($id);
+        $user = Auth::user();
 
         $validatedData = $request->validate([
-            'title' => 'required|string',
-            'keterangan' => 'required|string',
-            'image' => 'required|string',
-            'project_date' => 'required|date'
+            'name' => 'string',
+            'link' => 'string',
+            'keterangan' => 'string',
+            'image' => 'file|max:512',
+            'project_date' => 'date'
+        ], [
+            'image.max' => 'File harus berukuran 500 kb'
         ]);
 
         if (!$portofolio) {
             return response()->json([
-                'message' => 'User belum mengisi portofolio'
+                'message' => 'Belum mengisi portofolio'
             ], 404);
+        } elseif ($portofolio->user_id !== $user->id) {
+            return response()->json([
+                "message" => "Tidak bisa mengedit portofolio ini"
+            ], 403);
         }
 
-        $portofolio->update([
-            'title' => $validatedData['title'],
-            'slug' => slugify($validatedData['title']),
-            'keterangan' => $validatedData['keterangan'],
-            'image' => $validatedData['image'],
-            'project_date' => $validatedData['project_date']
-        ]);
+        if($request->hasFile('image')) {
+            if ($portofolio->image) {
+                $profilePhotoPath = 'images/portofolio/' . $portofolio->image;
+                Storage::disk('public')->delete($profilePhotoPath);
+            }
+            $userName = slugify($user->name);
+            $timestamp = now()->timestamp;
+            $image = 'porto-' . $userName . '-' . $timestamp . '.' . $request->file('image')->getClientOriginalExtension();
+            $filePath = 'images/portofolio/' . $image; 
+            Storage::disk('public')->put($filePath, file_get_contents($request->file('image')));
+            $validatedData['image'] = $image;
+        }
+
+        $portofolio->update($validatedData);
 
         return response()->json([
             "message" => "Berhasil mengubah data portofolio",
             "data" => [
                 'user_id' => $portofolio->user_id,
-                'title' => $portofolio->title,
-                'slug' => $portofolio->slug,
+                'name' => $portofolio->name,
+                'link' => $portofolio->link,
                 'keterangan' => $portofolio->keterangan,
                 'image' => $portofolio->image,
                 'project_date' => $portofolio->project_date
             ]
         ], 200);
     }
-
-    public function destroyPortofolio(string $id)
+    
+    public function destroyPortofolio()
     {
-        $portofolio = Portofolio::where('user_id', $id)->first();
+        $user_id = auth()->id();
+        $portofolio = Portofolio::where('user_id', $user_id)->first();
 
         if (!$portofolio) {
             return response()->json([

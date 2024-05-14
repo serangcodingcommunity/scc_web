@@ -9,11 +9,12 @@ use App\Models\Comment;
 use App\Models\Like;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
+// Post
     public function index(Request $request)
     {
         $posts = Post::with(['comments', 'likes', 'user', 'category'])->get();
@@ -65,46 +66,47 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = Validator::make($request->all(), [
-            'title' => 'required|unique:posts,title',
-            'keterangan' => 'required',
-            'image' => 'required',
-            'user_id' => 'required|exists:users,id',
-            'category_id' => 'required|exists:categories,id'
+        $user = Auth::user();
+        $validatedData = $request->validate([
+            'title' => 'required|string',
+            'keterangan' => 'required|string',
+            'image' => 'file|mimes:jpg,jpeg,png,webp|max:512',
+            'published' => 'required|integer',
+            'category_id' => 'required|integer'
+        ],[
+            'image.max' => 'File harus berukuran 500 kb',
+            'image.mimes' => 'File harus berformat jpg, jpeg, png & webp'
         ]);
 
         if (Post::where('title', $request->title)->first()) {
             return response()->json([
-                "message" => "Title sudah digunakan"
+                "message" => "Judul sudah digunakan"
             ], 422);
-        } elseif (!User::where('id', $request->user_id)->exists()) {
-            return response()->json([
-                "message" => "User tidak ditemukan"
-            ], 404);
         } elseif (!Category::where('id', $request->category_id)->exists()) {
             return response()->json([
-                "message" => "Category tidak ditemukan"
+                "message" => "Kategori tidak ditemukan"
             ], 404);
         }
 
-        $slug = strtolower(str_replace(' ', '-', $request->title));
-        $post = new Post([
-            'title' => $request->title,
-            'keterangan' => $request->keterangan,
-            'image' => $request->image,
-            'slug' => $slug,
-            'published' => 0,
-            'user_id' => $request->user_id,
-            'category_id' => $request->category_id
-        ]);
+        if($request->hasFile('image')) {
+            $userName = $user->name;
+            $timestamp = now()->timestamp;
+            $image = 'post-' . $userName . '-' . $timestamp . '.' . $request->file('image')->getClientOriginalExtension();
+            $filePath = 'images/post/' . $image; 
+            Storage::disk('public')->put($filePath, file_get_contents($request->file('image')));
+        }
 
+        $validatedData['image'] = $image;
+        $validatedData['user_id'] = $user->id;
+        $validatedData['slug'] = slugify($request->title);
+        $post = new Post($validatedData);
         $post->save();
 
         return response()->json([
             "data" => [
                 'id' => $post->id,
-                'slug' => $post->slug,
                 'title' => $post->title,
+                'slug' => $post->slug,
                 'keterangan' => $post->keterangan,
                 'image' => $post->image,
                 'published' => $post->published,
@@ -122,7 +124,7 @@ class PostController extends Controller
 
         if (!$post) {
             return response()->json([
-                "errors" => "Post tidak tersedia"
+                "errors" => "Postingan tidak tersedia"
             ], 404);
         }
 
@@ -171,41 +173,53 @@ class PostController extends Controller
     public function update(Request $request, string $id)
     {
         $post = Post::find($id);
+        $user = Auth::user();
 
-        $validatedData = Validator::make($request->all(), [
-            'title' => 'required',
-            'keterangan' => 'required',
-            'image' => 'required',
-            'user_id' => 'required|exists:users,id',
-            'category_id' => 'required|exists:categories,id'
+        $validatedData = $request->validate([
+            'title' => 'string',
+            'keterangan' => 'string',
+            'image' => 'file|mimes:jpg,jpeg,png,webp|max:512',
+            'category_id' => 'exists:categories,id'
+        ],[
+            'image.max' => 'File harus berukuran 500 kb',
+            'image.mimes' => 'File harus berformat jpg, jpeg, png & webp'
         ]);
 
         if (!$post) {
             return response()->json([
-                "message" => "Post tidak tersedia"
+                "message" => "Postingan tidak tersedia"
             ], 404);
-        } elseif (Post::where('title', $request->title)->first()) {
+        } elseif ($post->user_id !== $user->id) {
             return response()->json([
-                "message" => "Title sudah digunakan"
+                "message" => "Tidak bisa mengedit postingan ini"
+            ], 403);
+        } elseif (Post::where('title', $request->title)->where('id', '!=', $id)->exists()) {
+            return response()->json([
+                "message" => "Judul sudah digunakan"
             ], 422);
-        } elseif (!User::where('id', $request->user_id)->exists()) {
-            return response()->json([
-                "message" => "User tidak ditemukan"
-            ], 404);
         } elseif (!Category::where('id', $request->category_id)->exists()) {
             return response()->json([
-                "message" => "Category tidak ditemukan"
+                "message" => "Kategori tidak ditemukan"
             ], 404);
         }
 
-        $post->update([
-            'title' => $request->title,
-            'keterangan' => $request->keterangan,
-            'image' => $request->image,
-            'slug' => Str::slug($request->title),
-            'user_id' => $request->user_id,
-            'category_id' => $request->category_id
-        ]);
+        if($request->hasFile('image')) {
+            if ($post->image) {
+                $profilePhotoPath = 'images/post/' . $post->image;
+                Storage::disk('public')->delete($profilePhotoPath);
+            }
+            $userName = $user->name;
+            $timestamp = now()->timestamp;
+            $image = 'post-' . $userName . '-' . $timestamp . '.' . $request->file('image')->getClientOriginalExtension();
+            $filePath = 'images/post/' . $image; 
+            Storage::disk('public')->put($filePath, file_get_contents($request->file('image')));
+            $validatedData['image'] = $image;
+        }
+
+        $validatedData['user_id'] = $user->id;
+        $validatedData['slug'] = slugify($request->title);
+
+        $post->update($validatedData);
 
         return response()->json([
             "data" => [
@@ -225,11 +239,16 @@ class PostController extends Controller
     public function destroy(string $id)
     {
         $post = Post::find($id);
+        $user = Auth::user();
 
         if (!$post) {
             return response()->json([
-                "errors" => "Post tidak tersedia"
+                "errors" => "Postingan tidak tersedia"
             ], 404);
+        } elseif($post->user_id !== $user->id) {
+            return response()->json([
+                "message" => "Tidak bisa menghapus postingan ini"
+            ], 403);
         }
 
         $comments = Comment::where('post_id', $id)->get();
@@ -245,18 +264,28 @@ class PostController extends Controller
         $post->delete();
 
         return response()->json([
-            "message" => "Post berhasil dihapus",
+            "message" => "Postingan berhasil dihapus",
             "data" => "ok"
         ], 200);
     }
 
+// Publish
     public function publish(Request $request, string $id)
     {
         $post = Post::find($id);
+        $user = Auth::user();
 
         if (!$post) {
             return response()->json([
-                "message" => "Post tidak tersedia"
+                "message" => "Postingan tidak tersedia"
+            ], 404);
+        } elseif($post->user_id !== $user->id) {
+            return response()->json([
+                "message" => "Tidak bisa mengunggah postingan ini"
+            ], 403);
+        } elseif($post->published == 1) {
+            return response()->json([
+                "message" => "Postingan sudah dipublikasi"
             ], 404);
         }
 
@@ -273,25 +302,24 @@ class PostController extends Controller
         ], 200);
     }
 
+// Comment
     public function comment(Request $request, string $id)
     {
         $post = Post::find($id);
+        $user = Auth::user();
 
         if (!$post) {
             return response()->json([
-                "message" => "Post tidak tersedia"
+                "message" => "Postingan tidak tersedia"
             ], 404);
-        }
-
-        if($post->published == 0)
-        {
+        } elseif($post->published == 0) {
             return response()->json([
                 "message" => "Post tidak dipublikasi"
             ], 404);
         } elseif ($post->published == 1) {
             $comment = new Comment();
             $comment->keterangan = $request->keterangan;
-            $comment->user_id = $request->user_id;
+            $comment->user_id = $user->id;
             $comment->post_id = $id;
             $comment->save();
 
@@ -308,13 +336,15 @@ class PostController extends Controller
         }
     }
 
+// Like
     public function like(Request $request, string $id)
     {
         $post = Post::find($id);
+        $user = Auth::user();
 
         if (!$post) {
             return response()->json([
-                "message" => "Post tidak tersedia"
+                "message" => "Postingan tidak tersedia"
             ], 404);
         }
 
@@ -331,7 +361,7 @@ class PostController extends Controller
             }
 
             $like = new Like();
-            $like->user_id = $request->user_id;
+            $like->user_id = $user->id;
             $like->post_id = $id;
             $like->save();
 
@@ -348,14 +378,15 @@ class PostController extends Controller
     public function unlike(Request $request, string $id)
     {
         $post = Post::find($id);
+        $user = Auth::user();
 
         if (!$post) {
             return response()->json([
-                "message" => "Post tidak tersedia"
+                "message" => "Postingan tidak tersedia"
             ], 404);
         }
 
-        $like = Like::where('post_id', $id)->where('user_id', $request->user_id)->first();
+        $like = Like::where('post_id', $id)->where('user_id', $user->id)->first();
 
         if (!$like) {
             return response()->json([
