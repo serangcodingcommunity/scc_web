@@ -9,8 +9,8 @@ import Post from './views/dashboard/Post.jsx';
 import Category from './views/dashboard/Category.jsx';
 import Home from './views/default/home/Home.jsx';
 import About from './views/default/About.jsx';
-import Event from './views/default/Event.jsx';
-import DetailEvent from './views/default/DetailEvent.jsx';
+import Event from './views/default/event/Event.jsx';
+import DetailEvent from './views/default/event/DetailEvent.jsx';
 import Member from './views/default/Member.jsx';
 import Profile from './views/default/Profile.jsx';
 
@@ -47,6 +47,10 @@ const router = createBrowserRouter([
                 path: "/selectedevent",
                 element: <DetailEvent />,
             },
+            // {
+            //     path: "/selectedpost",
+            //     element: <Member />,
+            // },
             {
                 path: "/members",
                 element: <Member />,
