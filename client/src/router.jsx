@@ -13,6 +13,7 @@ import Event from './views/default/event/Event.jsx';
 import DetailEvent from './views/default/event/DetailEvent.jsx';
 import Member from './views/default/Member.jsx';
 import Profile from './views/default/Profile.jsx';
+import DetailPost from './views/default/DetailPost.jsx';
 
 
 const router = createBrowserRouter([
@@ -47,10 +48,10 @@ const router = createBrowserRouter([
                 path: "/selectedevent",
                 element: <DetailEvent />,
             },
-            // {
-            //     path: "/selectedpost",
-            //     element: <Member />,
-            // },
+            {
+                path: "/selectedpost",
+                element: <DetailPost title={"Posts"} />,
+            },
             {
                 path: "/members",
                 element: <Member />,
