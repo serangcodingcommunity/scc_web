@@ -21,13 +21,38 @@ class Event extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function narasumber()
+    public function nid1()
     {
-        return $this->belongsTo(Narasumber::class);
+        return $this->belongsTo(Narasumber::class, 'nid_1');
+    }
+    public function nid2()
+    {
+        return $this->belongsTo(Narasumber::class, 'nid_2');
+    }
+    public function nid3()
+    {
+        return $this->belongsTo(Narasumber::class, 'nid_3');
+    }
+    public function nid4()
+    {
+        return $this->belongsTo(Narasumber::class, 'nid_4');
+    }
+    public function nid5()
+    {
+        return $this->belongsTo(Narasumber::class, 'nid_5');
+    }
+    public function nid6()
+    {
+        return $this->belongsTo(Narasumber::class, 'nid_6');
     }
 
     public function feedbacks()
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    public function events()
+    {
+        return $this->hasMany(Event::class);
     }
 }
