@@ -12,7 +12,12 @@ import About from './views/default/About.jsx';
 import Event from './views/default/event/Event.jsx';
 import DetailEvent from './views/default/event/DetailEvent.jsx';
 import Member from './views/default/member/Member.jsx';
+import DetailPost from './views/default/home/Post.jsx';
 import Profile from './views/default/Profile.jsx';
+import GoogleCallback from './views/auth/GoogleCallback.jsx';
+import GithubCallback from './views/auth/GithubCallback.jsx';
+import NotFound from './views/NotFound.jsx';
+import MemberShow from './views/default/member/MemberShow.jsx';
 
 
 const router = createBrowserRouter([
@@ -30,7 +35,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "*",
-                element: <NotFound />
+                element: <NotFound/>
             },
             {
                 path: "/about",
