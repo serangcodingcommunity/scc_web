@@ -58,7 +58,7 @@ const MemberShow = ({ title }) => {
                             </div>
                             <h3 className="text-2xl font-bold mt-8 mb-3 text-[#142D55]">Pekerjaan</h3>
                             <div className="text-left  bg-[#EBEBEB] rounded-xl p-2 mt-3">
-                                <h3 className="text-sm font-semibold">Fullstack Developer</h3>
+                                <h3 className="text-sm font-semibold text-[#142D55]">Fullstack Developer</h3>
                                 <p className="text-xs">PT Bank Central Asia</p>
                             </div>
                         </div>
