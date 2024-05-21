@@ -3,14 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UsersController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\NarasumberController;
 use App\Http\Controllers\PembayaranController;
 
