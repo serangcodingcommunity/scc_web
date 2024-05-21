@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import ReactPaginate from 'react-paginate';
-import { useStateContext } from '../../contexts/ContextProvider';
+import { useStateContext } from '../../../contexts/ContextProvider';
 import {
     RiCalculatorLine,
     RiSearchLine,
@@ -8,10 +8,10 @@ import {
     RiArrowLeftSLine,
     RiArrowRightSLine
 } from "react-icons/ri";
-import Title from '../../components/widgets/Title'
-import Search from '../../components/widgets/Search'
-import Banner from '../../components/widgets/Banner'
-import Description from '../../components/widgets/Description'
+import Title from '../../../components/widgets/Title'
+import Search from '../../../components/widgets/Search'
+import Banner from '../../../components/widgets/Banner'
+import Description from '../../../components/widgets/Description'
 
 const Event = ({ title }) => {
     const [currentPage, setCurrentPage] = useState(0);
@@ -32,9 +32,9 @@ const Event = ({ title }) => {
 
             <div className='bg-white box-border px-2 py-5 shadow-md border rounded-md'>
                 <div className='flex flex-col space-y-3 md:flex-row md:justify-evenly lg:justify-center lg:space-x-5'>
-                    <div className="h-auto max-w-full md:max-w-md lg:max-w-xl">
+                    <div className="h-auto max-w-full md:max-w-md lg:max-w-4xl">
                         <Banner
-                            src="https://images.unsplash.com/photo-1560523160-754a9e25c68f?q=80&w=2036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                            src="https://plus.unsplash.com/premium_photo-1676139292936-a2958a0d7177?q=80&w=1918&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                             alt="event image"
                         />
                     </div>
