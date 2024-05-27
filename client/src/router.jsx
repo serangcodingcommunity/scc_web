@@ -14,6 +14,7 @@ import DetailEvent from './views/default/event/DetailEvent.jsx';
 import Member from './views/default/Member.jsx';
 import Profile from './views/default/Profile.jsx';
 import DetailPost from './views/default/DetailPost.jsx';
+import Gallery from './views/default/Gallery.jsx';
 
 
 const router = createBrowserRouter([
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
             {
                 path: "/members",
                 element: <Member />,
+            },
+            {
+                path: "/gallery",
+                element: <Gallery title={"Gallery"} />,
             },
             {
                 path: "/",
