@@ -28,4 +28,9 @@ class RegistrasiEvent extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
 }

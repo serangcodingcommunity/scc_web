@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendMail;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use App\Models\RegistrasiEvent;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -237,7 +239,19 @@ class EventRegistrationController extends Controller
             return response()->json([
                 "message" => "Pembayaran diverifikasi"
             ], 200);
+
+            // $data = [
+            //     'subject' => 'Pembayaran Berhasil',
+            //     'sender_name' => env('MAIL_FROM_ADDRESS'),
+            //     ''
+            // ];
+            // Mail::to("verdian352@gmail.com")->send(new SendMail);
         }
+    }
+
+    public function sendMail()
+    {
+        Mail::to("verdian352@gmail.com")->send(new SendMail);
     }
 
     public function reject(Request $request)

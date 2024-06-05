@@ -45,6 +45,7 @@ Route::put('/events/{id}/tersedia', [EventController::class, 'tersediaEvent'])->
 Route::put('/events/{id}/selesai', [EventController::class, 'selesaiEvent'])->middleware('auth:sanctum');
 
 /* Event Registration */
+Route::post('/event/registration/send-mail', [EventRegistrationController::class, 'sendMail'])->middleware('auth:sanctum');
 Route::get('/event/registration', [EventRegistrationController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/event/registration', [EventRegistrationController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/event/registration/{id}', [EventRegistrationController::class, 'show'])->middleware('auth:sanctum');

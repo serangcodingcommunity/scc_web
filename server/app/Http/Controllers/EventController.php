@@ -73,6 +73,7 @@ class EventController extends Controller
 
         $slug = strtolower(slugify($request->input('title')));
         $user = Auth::user();
+        $partner = 
 
         $timestamp = now()->timestamp;
 
@@ -99,6 +100,8 @@ class EventController extends Controller
             'nid_5' => $request->nid_5,
             'nid_6' => $request->nid_6,
             'user_id' => $user->id,
+            'certificated' => $request->certificated,
+            'partner_id' => $
         ]);
 
         return response()->json([

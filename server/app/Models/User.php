@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\Member;
 use App\Models\Sosmed;
 use App\Models\Comment;
+use App\Models\Partner;
 use App\Models\Feedback;
 use App\Models\Pekerjaan;
 use App\Models\Pendidikan;
@@ -116,5 +117,10 @@ class User extends Authenticatable
     public function member()
     {
         return $this->hasOne(Member::class);
+    }
+
+    public function partner()
+    {
+        return $this->hasOne(Partner::class);
     }
 }
