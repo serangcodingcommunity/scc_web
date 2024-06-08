@@ -9,10 +9,12 @@ use App\Models\Event;
 use App\Models\Member;
 use App\Models\Sosmed;
 use App\Models\Comment;
+use App\Models\Partner;
 use App\Models\Feedback;
 use App\Models\Pekerjaan;
 use App\Models\Pendidikan;
 use App\Models\Portofolio;
+use App\Models\HistoryLogin;
 use App\Models\RegistrasiEvent;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -116,5 +118,15 @@ class User extends Authenticatable
     public function members()
     {
         return $this->hasOne(Member::class, 'id');
+    }
+
+    public function partnerts()
+    {
+        return $this->hasMany(Partner::class);
+    }
+
+    public function historyLogin()
+    {
+        return $this->hasMany(HistoryLogin::class);
     }
 }

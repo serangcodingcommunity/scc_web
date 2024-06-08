@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('event_id');
+            $table->tinyInteger('kehadiran');
             $table->timestamps();
 
             // Reference-to-users & events

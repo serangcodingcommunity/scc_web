@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('portofolios', function (Blueprint $table) {
+        Schema::create('partners', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
             $table->string('name');
-            $table->string('link');
-            $table->text('keterangan');
-            $table->string('image')->nullable();
-            $table->date('project_date');
+            $table->string('name_pic');
+            $table->string('email')->unique();
+            $table->text('catatan');
+            $table->string('photo_ktp')->nullable();
+            $table->unsignedBigInteger('user_id');
+            $table->timestamps();
 
             // Relationship-to-users
             $table->foreign('user_id')->references('id')->on('users');
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('portofolios');
+        Schema::dropIfExists('partners');
     }
 };

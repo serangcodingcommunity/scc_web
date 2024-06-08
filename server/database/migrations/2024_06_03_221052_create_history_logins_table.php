@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('pembayarans', function (Blueprint $table) {
-            $table->string('keterangan')->after('bukti_pemb');
-            $table->string('pesan')->after('keterangan');
+        Schema::create('history_logins', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->timestamps();
+            
+            // Relationship-to-users
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
@@ -22,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('pembayarans', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('history_logins');
     }
 };

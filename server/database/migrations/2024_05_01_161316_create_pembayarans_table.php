@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('pembayarans', function (Blueprint $table) {
             $table->unsignedBigInteger('id');
-            $table->string('bukti_pemb');
-            $table->string('status');
+            $table->text('bukti_pemb')->nullable();
+            $table->text('bukti_pemb2')->nullable();
+            $table->string('keterangan_admin')->nullable();
+            $table->string('keterangan_user')->nullable();
+            $table->string('pesan')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
 
-            $table->foreign('id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('id')->references('id')->on('registrasi_events')->onDelete('cascade');
         });
     }
 
